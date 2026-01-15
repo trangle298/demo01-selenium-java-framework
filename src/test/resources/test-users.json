@@ -1,0 +1,23 @@
+{
+  "basicUser": {
+    "username": "testUser.primary",
+    "password": "Test123456@",
+    "fullName": "TenTen",
+    "email": "testUser.primary@email.com",
+    "phoneNr": "12345678"
+  },
+  "accountUpdateUser": {
+    "username": "singapore",
+    "password": "Singapore1!",
+    "fullName": "Singaporean",
+    "email": "singapore@hotmail.com",
+    "phoneNr": "123462677"
+  },
+  "bookingUser": {
+    "username": "bookingUser1",
+    "password": "123456",
+    "fullName": "bookingUserOne",
+    "email": "bookingUser1@test.com",
+    "phoneNr": ""
+  }
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite" parallel="classes" thread-count="4">
+    <listeners>
+        <listener class-name="listeners.TestListener" />
+    </listeners>
+
+    <test name="Authentication Tests">
+        <classes>
+            <class name="testcases.auth.RegisterTest" />
+            <class name="testcases.auth.LoginTest" />
+            <class name="testcases.auth.LogoutTest" />
+            <class name="testcases.account.AccountUpdateTest" />
+        </classes>
+    </test>
+
+    <test name="Booking Test">
+        <classes>
+            <class name="testcases.booking.BookingTest" />
+        </classes>
+    </test>
+
+    <test name="Browsing and Exploration Test">
+        <classes>
+            <class name="testcases.browsing.ShowtimeFilterTest" />
+        </classes>
+    </test>
+
+    <test name="E2E Tests">
+        <classes>
+            <class name="testcases.e2e.RegisterLoginE2ETest" />
+            <class name="testcases.e2e.CompleteBookingFlowE2ETest" />
+            <class name="testcases.e2e.AccountManagementE2ETest" />
+        </classes>
+    </test>
+
+</suite>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<!-- 
+    E2E Test Suite - Complete user journey tests
+    Run with: gradlew test -DsuiteXmlFile=testng-e2e.xml
+    Or right-click in IDE and select "Run"
+    
+    Note: These tests are slower and test complete user journeys.
+    Recommended to run sequentially (no parallel execution) to avoid data conflicts.
+-->
+<suite name="E2E Test Suite" parallel="none" thread-count="1">
+    <listeners>
+        <listener class-name="listeners.TestListener" />
+    </listeners>
+
+    <test name="End-to-End User Journeys">
+        <classes>
+            <class name="testcases.e2e.RegisterLoginE2ETest" />
+            <class name="testcases.e2e.CompleteBookingFlowE2ETest" />
+            <class name="testcases.e2e.AccountManagementE2ETest" />
+        </classes>
+    </test>
+
+</suite>
+
