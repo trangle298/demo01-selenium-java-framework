@@ -3,8 +3,6 @@
 A robust, scalable, and feature-rich Selenium test automation framework built with Java, TestNG, and Gradle. This framework follows industry best practices including the Page Object Model (POM), centralized configuration management, and comprehensive reporting capabilities.
 
 ## Key Features
-
-----
 - **Page Object Model (POM)** - Maintainable and reusable page objects
 - **Multi-Browser Support** - Chrome, Firefox, Edge, and Safari
 - **Parallel Execution** - Run tests in parallel for faster execution
@@ -17,8 +15,6 @@ A robust, scalable, and feature-rich Selenium test automation framework built wi
 
 
 ## Tech Stack
-
-----
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | **Java** | 11+ | Programming Language |
@@ -34,9 +30,6 @@ A robust, scalable, and feature-rich Selenium test automation framework built wi
 
 
 ## Project Structure
-
-----
-
 ```
 src/
 ├── main/java/
@@ -76,9 +69,6 @@ gradlew                             # Gradle wrapper (Unix/Linux/macOS)
 gradlew.bat                         # Gradle wrapper (Windows)
 ```
 ## Test Data Strategy
-
-----
-
 Due to a lack of backend access and data seeding capabilities, tests dynamically discover eligible test data via public APIs. This ensures correctness in a shared, mutable environment but increases execution time.
 
 In a controlled test environment, these tests would instead:
@@ -87,11 +77,10 @@ In a controlled test environment, these tests would instead:
 - Reset state between tests
 - Remove dynamic discovery logic
 
+----
 
 # Getting Started
 ## Prerequisites
-
-----
 Before running the tests, ensure you have the following installed:
 
 - **Java Development Kit (JDK)** 11 or higher
@@ -104,9 +93,6 @@ Before running the tests, ensure you have the following installed:
   - Safari (macOS only)
 
 ## Installation
-
-----
-
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/trangle298/demo01-selenium-java-framework.git
@@ -128,9 +114,6 @@ Before running the tests, ensure you have the following installed:
    ```
    
 ## Configuration
-
-----
-
 ### 1. Configuration Files
 
 #### `src/test/resources/config.properties`
@@ -172,8 +155,6 @@ The framework supports multiple configuration sources with the following precede
 - **messages_vi.properties** - Vietnamese language strings for validation
 
 ## Add New Tests
-
-----
 ### Page Object Model (POM)
 
 This project uses the Page Object Model (POM) pattern to keep test code maintainable and reusable. The main concepts are:
@@ -254,8 +235,6 @@ Key features of `BaseTest`:
 
 
 ## Run Tests
-
-----
 ### Run All Tests
 
 ```bash
@@ -323,9 +302,6 @@ The framework supports parallel test execution configured in `testng.xml`:
 Adjust `thread-count` based on your system resources.
 
 ## Reporting
-
-----
-
 The framework uses **ExtentReports** as the primary reporting solution. TestNG executes the tests and triggers ExtentReports through the `TestListener` class, creating comprehensive HTML reports with rich visualizations.
 
 ### How it works
