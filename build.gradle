@@ -25,7 +25,6 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 }
 
-// Default test task - runs testng.xml suite (organized test structure)
 test {
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
@@ -48,29 +47,43 @@ test {
     }
 }
 
-// Custom task for running tests by groups (flexible filtering)
-//tasks.register('testByGroup', Test) {
-//    useTestNG() {
-//        // Define which groups to include based on a system property
-//        def groups = System.getProperty('groups', '')
-//        if (!groups) {
-//            throw new GradleException("Please specify groups using -Dgroups=<group_names>")
-//        }
-//        includeGroups groups
+// JavaDoc generation task - creates HTML documentation from JavaDoc comments
+// BEST PRACTICE: Only document framework code (src/main/java) + reusable test helpers
+// Excludes:
+//   - Test cases (testcases.*) - self-documenting via test names and reports
 //
-//        useDefaultListeners = true
-//        outputDirectory = file("$projectDir/test-output")
-//
-//        // Preserve suite/test structure for @BeforeSuite/@AfterSuite methods
-//        preserveOrder = true
-//
-//        // GroupByInstances ensures proper method execution order
-//        groupByInstances = true
-//    }
-//
-//    testLogging {
-//        events "passed", "skipped", "failed"
-//        showStandardStreams = true
-//    }
-//}
+// NOTE: Model classes are included because they're referenced in API method signatures,
+// but they are simple data containers (Lombok POJOs) with minimal documentation.
+javadoc {
+    source = sourceSets.main.allJava
 
+    // Include ONLY reusable test helpers (not test cases)
+    source += fileTree(dir: 'src/test/java', include: 'helpers/**/*.java')
+
+    classpath = configurations.compileClasspath + configurations.testCompileClasspath
+    destinationDir = file("$projectDir/docs/javadoc")
+
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.author = true
+    options.version = true
+    options.windowTitle = 'Selenium Automation Framework - API Documentation'
+    options.docTitle = 'Selenium Automation Framework - Core API'
+    options.header = 'Test Automation Framework API'
+    options.footer = 'Framework Documentation - For internal use'
+
+    // Group packages for better organization
+    options.group("Page Objects", "pages*")
+    options.group("Base Classes", "base*")
+    options.group("Test Helpers", "helpers*")
+    options.group("Utilities", "utils*")
+    options.group("Configuration", "config*")
+    options.group("Reporting", "reports*")
+    options.group("Data Models", "model*")
+    options.group("API Clients", "api*")
+    options.group("Driver Management", "drivers*")
+    options.group("Listeners", "listeners*")
+
+    // Suppress warnings for missing tags
+    options.addStringOption('Xdoclint:none', '-quiet')
+}

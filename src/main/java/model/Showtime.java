@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Showtime details including movie info and seat layout from API response.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Showtime {

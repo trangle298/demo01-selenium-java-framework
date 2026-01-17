@@ -6,54 +6,61 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+/**
+ * Page Object for Account management page.
+ * Handles user profile updates and account information.
+ */
 public class AccountPage extends CommonPage {
 
-    @FindBy(css = "form")
-    private WebElement accountForm;
+    // ============================================
+    // ---- Page Elements ----
+    // ============================================
 
+    // ---- Form fields ----
     @FindBy (id = "taiKhoan")
     private WebElement txtUsername;
-
     @FindBy (id = "matKhau")
     private WebElement txtPassword;
-
     @FindBy (id = "hoTen")
     private WebElement txtFullName;
-
     @FindBy (id = "email")
     private WebElement txtEmail;
-
     @FindBy (id = "soDt")
     private WebElement txtPhoneNumber;
 
-    @FindBy (css = "select[name='maLoaiNguoiDung']")
-    private WebElement dropdownUserType;
-
+    // ---- Form button ----
     @FindBy (xpath = "//button[.='Cập Nhật']")
     private WebElement btnSaveChanges;
 
+    // ---- Form alerts ----
     @FindBy (xpath = "//div[@role='dialog']//h2")
-    private WebElement alertFormFeedback;
-
+    private WebElement alertFormUpdate;
     @FindBy(id = "hoTen-helper-text")
     private WebElement lblFullNameError;
-
     @FindBy (id = "email-helper-text")
     private WebElement lblEmailError;
-
     @FindBy (id = "matKhau-helper-text")
     private WebElement lblPasswordError;
 
+    // ============================================
+    // Constructor
+    // ============================================
     public AccountPage(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
     }
 
+    // ============================================
+    // ---- Public Methods  ----
+    // ============================================
+
+    // ---- Navigation ----
     public void navigateToAccountPage() {
         LOG.info("Navigate to Account Page");
         driver.get(url(Routes.ACCOUNT));
     }
 
+    // ---- Get field values ----
     public String getUsername() {
         return getFieldValue(txtUsername);
     }
@@ -74,53 +81,61 @@ public class AccountPage extends CommonPage {
         return getFieldValue(txtPassword);
     }
 
+    // ---- Form interactions: fill/update fields, click buttons ----
     public void changeName(String newName) {
-        clearField(txtFullName);
-        sendKeys(txtFullName, newName);
-    }
-
-    public void changePassword(String newPassword) {
-        clearField(txtPassword);
-        sendKeys(txtPassword, newPassword);
+        clear(txtFullName);
+        enterText(txtFullName, newName);
     }
 
     public void changeEmail(String newEmail) {
-        clearField(txtEmail);
-        sendKeys(txtEmail, newEmail);
+        clear(txtEmail);
+        enterText(txtEmail, newEmail);
     }
 
     public void changePhoneNumber(String newPhoneNumber) {
-        clearField(txtPhoneNumber);
-        sendKeys(txtPhoneNumber, newPhoneNumber);
+        clear(txtPhoneNumber);
+        enterText(txtPhoneNumber, newPhoneNumber);
+    }
+
+    public void changeAccountInfo(String newName, String newEmail, String newPhoneNumber) {
+        changeName(newName);
+        changeEmail(newEmail);
+        changePhoneNumber(newPhoneNumber);
+    }
+
+    public void changePassword(String newPassword) {
+        clear(txtPassword);
+        enterText(txtPassword, newPassword);
     }
 
     public void changeUsername(String newUsername) {
-        clearField(txtUsername);
-        sendKeys(txtUsername, newUsername);
+        clear(txtUsername);
+        enterText(txtUsername, newUsername);
     }
 
     public void saveChanges() {
         click(btnSaveChanges);
     }
 
+    // ---- Messages and alerts ----
     public void waitForUpdateAlert(){
-        waitForVisibilityOfElementLocated(alertFormFeedback);
+        waitForVisibilityOfElementLocated(alertFormUpdate);
     }
 
     public void waitForUpdateAlertToDisappear() {
-        waitForInvisibilityOfElementLocated(alertFormFeedback);
+        waitForInvisibilityOfElementLocated(alertFormUpdate);
     }
 
     public String getUpdateAlertText() {
-        return getText(alertFormFeedback);
+        return getText(alertFormUpdate);
     }
 
     public boolean isUpdateAlertDisplayed() {
-        return isElementDisplayed(alertFormFeedback, 5);
+        return isElementDisplayedShort(alertFormUpdate);
     }
 
     public boolean isNameValidationErrorDisplayed() {
-        return isElementDisplayed(lblFullNameError);
+        return isElementDisplayedShort(lblFullNameError);
     }
 
     public String getNameValidationErrorText() {
@@ -128,7 +143,7 @@ public class AccountPage extends CommonPage {
     }
 
     public boolean isEmailValidationErrorDisplayed() {
-        return isElementDisplayed(lblEmailError);
+        return isElementDisplayedShort(lblEmailError);
     }
 
     public String getEmailValidationErrorText() {
@@ -136,15 +151,11 @@ public class AccountPage extends CommonPage {
     }
 
     public boolean isPasswordValidationErrorDisplayed() {
-        return isElementDisplayed(lblPasswordError);
+        return isElementDisplayedShort(lblPasswordError);
     }
 
     public String getPasswordValidationErrorText() {
         return getText(lblPasswordError);
     }
-
-
-
-
 
 }

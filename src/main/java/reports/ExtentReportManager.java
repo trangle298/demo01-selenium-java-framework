@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Manages ExtentReports for test reporting.
+ * Handles report initialization, test logging, and screenshot capture.
+ * Thread-safe for parallel test execution.
+ */
 public class ExtentReportManager {
 
     private static ExtentReports extent;

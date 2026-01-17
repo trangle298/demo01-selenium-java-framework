@@ -1,6 +1,6 @@
 package testcases.browsing;
 
-import api.Movie.MovieDataExtractor;
+import api.movie.MovieDataExtractor;
 import base.BaseTest;
 import helpers.Messages;
 import model.FilterDropdownOptions;
@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static helpers.ShowtimeFilterSamplesProvider.getSampleShowtimeFilterOptions;
-import static model.FilterType.cinema;
 import static model.FilterType.movie;
 
 public class ShowtimeFilterTest extends BaseTest {
@@ -64,6 +63,7 @@ public class ShowtimeFilterTest extends BaseTest {
 
         for (String movie : moviesFromUI) {
             homePage.refreshPage();
+            homePage.showtimeFilterDropdowns.waitForDropdownsToLoad();
 
             ExtentReportManager.info("Fetch cinema names from API for movie: " + movie);
             List<String> cinemasFromAPI = MovieDataExtractor.extractAllCinemaLocationsByMovieTitle(movie);
@@ -85,11 +85,6 @@ public class ShowtimeFilterTest extends BaseTest {
                 softAssert.fail("Cinema dropdown options do not match API data for movie: " + movie + ". ");
             }
         }
-    }
-
-    @Test(groups = {"component", "browsing", "showtimeFilters"})
-    public void testShowtimeFilterDefaultSelection() {
-        // Test implementation goes here
     }
 
     @Test(groups = {"integration", "browsing", "showtimeFilters", "smoke"})
@@ -144,10 +139,12 @@ public class ShowtimeFilterTest extends BaseTest {
         verifyMissingFilterAlert(expectedAlertText);
     };
 
-    // --------------------------
-    // Helper methods for verification
-    // --------------------------
+    // ---- Helper methods for verification ----
     private void verifyMissingFilterAlert(String expectedAlertText) {
+        // Use hard assertions here (TestNG Assert) because:
+        // 1. Only checking 2 things (alert visible + text correct)
+        // 2. If alert isn't visible, checking text is meaningless
+        // 3. Test should fail fast if alert doesn't appear
         Assert.assertTrue(
                 homePage.showtimeFilterDropdowns.isMissingFilterAlertVisible(),
                 "Missing filter alert is not displayed"

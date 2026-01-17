@@ -6,6 +6,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import config.ConfigManager;
 
+/**
+ * Chrome browser driver manager.
+ * Configures ChromeDriver with options for page load strategy and automation detection.
+ */
 public class ChromeDriverManager extends DriverManager {
 
     @Override

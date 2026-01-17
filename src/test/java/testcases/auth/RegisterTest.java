@@ -1,9 +1,8 @@
 package testcases.auth;
 
 import base.BaseTest;
-import helpers.AssertionHelper;
-import helpers.AuthVerificationHelper;
 import helpers.Messages;
+import helpers.SoftAssertionHelper;
 import helpers.TestUserProvider;
 import model.RegisterRequest;
 import model.TestUser;
@@ -46,10 +45,6 @@ public class RegisterTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    // =========================
-    // Form Validation Tests (Client-side)
-    // Tests registration form behavior with invalid/missing inputs
-    // =========================
     @Test(groups = {"component", "auth", "register", "negative"})
     public void testInvalidRegister_BlankField() {
         SoftAssert softAssert = new SoftAssert();
@@ -118,9 +113,7 @@ public class RegisterTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    // =========================
     // Form Validation Tests (Server-side)
-    // =========================
     @Test(groups = {"integration", "auth", "register", "negative", "critical"})
     public void testInvalidRegister_ExistingUsername() {
         SoftAssert softAssert = new SoftAssert();
@@ -166,28 +159,26 @@ public class RegisterTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    // --------------------------
-    // Helper methods for verification
-    // --------------------------
+    // ---- Helper methods for verification ----
     private void verifyFormErrorAlert(String expectedMsg, SoftAssert softAssert) {
         // Verify error alert is displayed
-        boolean errorDisplayed = AssertionHelper.verifySoftTrue(registerPage.isRegisterErrorAlertDisplayed(),
+        boolean errorDisplayed = SoftAssertionHelper.verifySoftTrue(registerPage.isRegisterErrorAlertDisplayed(),
                 "Register error alert is displayed", getDriver(), softAssert);
 
         // Verify error message text
         if (errorDisplayed) {
             String actualMsg = registerPage.getRegisterErrorMsgText();
-            AssertionHelper.verifySoftEquals(actualMsg, expectedMsg, "Register form error message text", getDriver(), softAssert);
+            SoftAssertionHelper.verifySoftEquals(actualMsg, expectedMsg, "Register form error message text", getDriver(), softAssert);
         }
     }
 
     private void verifyFieldErrorMsg(String fieldName, String expectedMsg, SoftAssert softAssert) {
         boolean errorDisplayed = registerPage.isFieldValidationErrorDisplayed(fieldName);
-        AssertionHelper.verifySoftTrue(errorDisplayed, fieldName + " field error is displayed", getDriver(), softAssert);
+        SoftAssertionHelper.verifySoftTrue(errorDisplayed, fieldName + " field error is displayed", getDriver(), softAssert);
 
         if (errorDisplayed) {
             String actualMsg = registerPage.getFieldErrorText(fieldName);
-            AssertionHelper.verifySoftEquals(actualMsg, expectedMsg, fieldName + " error message text", getDriver(), softAssert);
+            SoftAssertionHelper.verifySoftEquals(actualMsg, expectedMsg, fieldName + " error message text", getDriver(), softAssert);
         }
     }
 

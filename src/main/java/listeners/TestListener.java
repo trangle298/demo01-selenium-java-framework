@@ -6,6 +6,10 @@ import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
+/**
+ * TestNG listener for logging test execution events.
+ * Logs test start, success, failure, and skip events to Log4j.
+ */
 public class TestListener implements ITestListener {
 
     public static final Logger logger = LogManager.getLogger(TestListener.class);

@@ -2,6 +2,9 @@ package model;
 
 import lombok.Data;
 
+/**
+ * Model for registration form data.
+ */
 @Data
 public class RegisterRequest {
 

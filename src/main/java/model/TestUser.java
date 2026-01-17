@@ -2,6 +2,11 @@ package model;
 
 import lombok.Data;
 
+/**
+ * Test user model for loading test user data from test-users.json.
+ * Uses Lombok @Data to auto-generate getters, setters, toString(), equals(), and hashCode().
+ * Jackson deserializes JSON directly since field names match JSON property names.
+ */
 @Data
 public class TestUser {
 
@@ -10,20 +15,5 @@ public class TestUser {
     private String fullName;
     private String email;
     private String phoneNr;
-//
-//    @JsonCreator
-//    public TestUser(
-//            @JsonProperty("taiKhoan") String taiKhoan,
-//            @JsonProperty("matKhau") String matKhau,
-//            @JsonProperty("hoTen") String hoTen,
-//            @JsonProperty("email") String email,
-//            @JsonProperty("soDt") String soDt
-//    ) {
-//        this.taiKhoan = taiKhoan;
-//        this.matKhau = matKhau;
-//        this.hoTen = hoTen;
-//        this.email = email;
-//        this.soDt = soDt;
-//    }
 
 }

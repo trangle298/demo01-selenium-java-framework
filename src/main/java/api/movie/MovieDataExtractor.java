@@ -1,4 +1,4 @@
-package api.Movie;
+package api.movie;
 
 import model.Movie;
 import model.ShowtimeDetails;
@@ -9,9 +9,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import api.movie.MovieApiClient;
+
+/**
+ * Extracts and transforms movie data from API responses.
+ * Provides methods to get movie titles, IDs, and showtime information.
+ */
 public class MovieDataExtractor {
 
-
+    /**
+     * Extracts all movie titles from the API response.
+     *
+     * @return List of movie titles.
+     * @throws Exception if an error occurs during data fetching.
+     */
     public static List<String> extractAllMovieTitles() throws Exception {
         List<Movie> movies = MovieApiClient.fetchMoviesList();
         List<String> movieTitles = new ArrayList<>();
@@ -21,6 +32,12 @@ public class MovieDataExtractor {
         return movieTitles;
     }
 
+    /**
+     * Extracts all unique showtime IDs across all movies from the API response.
+     *
+     * @return List of unique showtime IDs.
+     * @throws Exception if an error occurs during data fetching.
+     */
     public static List<String> extractAllMovieShowtimeIds() throws Exception {
 
         Set<String> showtimeIds = new HashSet<>();
@@ -35,6 +52,13 @@ public class MovieDataExtractor {
         return new ArrayList<>(showtimeIds);
     }
 
+    /**
+     * Retrieves the movie ID for a given movie title.
+     *
+     * @param movieTitle The title of the movie.
+     * @return The movie ID.
+     * @throws Exception if the movie is not found or multiple IDs are found.
+     */
     public static String getMovieIdByTitle(String movieTitle) throws Exception {
         List<Movie> movies = MovieApiClient.fetchMoviesList();
         Set<String> movieIds = new HashSet<>();
@@ -55,6 +79,13 @@ public class MovieDataExtractor {
         return movieIds.iterator().next();
     }
 
+    /**
+     * Extracts all unique cinema locations showing a specific movie by its title.
+     *
+     * @param movieTitle The title of the movie.
+     * @return List of unique cinema locations.
+     * @throws Exception if an error occurs during data fetching.
+     */
     public static List<String> extractAllCinemaLocationsByMovieTitle(String movieTitle) throws Exception {
 
         Set<String> cinemaLocations = new HashSet<>();
@@ -70,6 +101,13 @@ public class MovieDataExtractor {
         return new ArrayList<>(cinemaLocations);
     }
 
+    /**
+     * Extracts all unique showtime IDs for a specific movie by its ID.
+     *
+     * @param movieId The ID of the movie.
+     * @return List of unique showtime IDs.
+     * @throws Exception if an error occurs during data fetching.
+     */
     public static List<String> extractShowtimeIdsForMovie(String movieId) throws Exception {
 
         Set<String> showtimeIds = new HashSet<>();
@@ -84,5 +122,4 @@ public class MovieDataExtractor {
         }
         return new ArrayList<>(showtimeIds);
     }
-
 }

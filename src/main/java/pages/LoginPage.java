@@ -6,46 +6,63 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+/**
+ * Page Object for Login page.
+ * Handles login form interactions and validation.
+ */
 public class LoginPage extends CommonPage {
 
+    // ============================================
+    // ---- Page Elements ----
+    // ============================================
+    
+    // ---- Form fields ----
     @FindBy (id = "taiKhoan")
     private WebElement txtAccountLogin;
-
     @FindBy (id = "matKhau")
     private WebElement txtPasswordLogin;
-
+    
+    // ---- Form button ----
     @FindBy (css = "button[type='submit']")
     private WebElement btnLogin;
-
-    @FindBy (css = "div[role='dialog']")
-    private WebElement alertLoginSuccess;
-
-    @FindBy (xpath = "//div[@role='dialog']//h2")
-    private WebElement lblLoginSuccessMsg;
-
+    
+    // ---- Field validation message ----
     @FindBy (id = "matKhau-helper-text")
     private WebElement lblInvalidPasswordMsg;
-
+    
+    // ---- Form alerts ----
+    @FindBy (css = "div[role='dialog']")
+    private WebElement alertLoginSuccess;
+    @FindBy (xpath = "//div[@role='dialog']//h2")
+    private WebElement lblLoginSuccessMsg;
     @FindBy (css = "div[role='alert']")
     private WebElement alertLoginError;
 
-
+    // ============================================
+    // ---- Constructor ----
+    // ============================================
     public LoginPage(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
     }
 
+    // ============================================
+    // ---- Public Methods  ----
+    // ============================================
+    
+    // ---- Navigation ----
     public void navigateToLoginPage() {
         LOG.info("Navigate to Login Page");
         driver.get(url(Routes.LOGIN));
     }
 
+    // ---- Form interactions: fill fields, click button ----
     public void enterAccount(String account) {
-        sendKeys(txtAccountLogin, account);
+        enterText(txtAccountLogin, account);
     }
 
     public void enterPassword(String password) {
-        sendKeys(txtPasswordLogin, password);
+        enterText(txtPasswordLogin, password);
     }
 
     public void clickLoginButton() {
@@ -58,27 +75,28 @@ public class LoginPage extends CommonPage {
         enterPassword(password);
         clickLoginButton();
     }
+    
+    // ---- Messages and alerts ----
+    public boolean isInvalidPasswordMsgDisplayed() {
+        return isElementDisplayedShort(lblInvalidPasswordMsg);
+    }
 
-    public boolean isLoginSuccessMessageDisplayed() {
+    public String getPasswordValidationText() {
+        return getText(lblInvalidPasswordMsg);
+    }
+
+    public boolean isLoginSuccessAlertDisplayed() {
         return isElementDisplayed(alertLoginSuccess);
-    }
-
-    public boolean isInvalidPasswordMessageDisplayed() {
-        return isElementDisplayed(lblInvalidPasswordMsg, 3);
-    }
-
-    public boolean isLoginErrorMessageDisplayed() {
-        return isElementDisplayed(alertLoginError, 3);
     }
 
     public String getLoginSuccessMsgText() {
         return getText(lblLoginSuccessMsg);
     }
 
-    public String getPasswordErrorMsgText() {
-        return getText(lblInvalidPasswordMsg);
+    public boolean isLoginErrorAlertDisplayed() {
+        return isElementDisplayedShort(alertLoginError);
     }
-
+    
     public String getLoginErrorMsgText() {
         return getText(alertLoginError);
     }

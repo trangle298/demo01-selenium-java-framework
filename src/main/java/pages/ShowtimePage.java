@@ -9,6 +9,10 @@ import org.openqa.selenium.support.PageFactory;
 
 import java.util.List;
 
+/**
+ * Page Object for Showtime Booking page.
+ * Handles seat selection and ticket booking.
+ */
 public class ShowtimePage extends CommonPage {
 
     // Available seats: buttons that are NOT disabled and NOT the "ĐẶT VÉ" (Purchase) button
@@ -29,6 +33,16 @@ public class ShowtimePage extends CommonPage {
     public void navigateToShowtimePage(String showtimeId) {
         LOG.info("Navigate to Booking page for showtime: " + showtimeId);
         driver.get(url(String.format(Routes.SHOWTIME, showtimeId)));
+    }
+
+    /**
+     * Wait for the showtime page to fully load.
+     * Waits for the booking button to be visible, which is always present regardless of seat availability.
+     * Use this after page refresh or navigation to ensure page is ready.
+     */
+    public void waitForPageToLoad() {
+        LOG.info("Waiting for showtime page to load");
+        isElementDisplayed(btnBookTickets);
     }
 
     public void selectAvailableSeat(String seatNumber) {
@@ -53,25 +67,37 @@ public class ShowtimePage extends CommonPage {
 
     public List<String> getAvailableSeatNumbers() {
         LOG.info("Get Available Seat Numbers");
-        waitForVisibilityOfAllElements(btnAvailableSeats);
+        waitForPageToLoad();
         return btnAvailableSeats.stream()
                 .map(WebElement::getText)
                 .toList();
     }
 
+    /**
+     * Check if a specific seat is available (exists and is clickable).
+     * Uses default wait timeout since seats load with the page.
+     *
+     * @param seatNumber The seat number to check (e.g., "A1", "B5")
+     * @return true if seat exists and is available, false otherwise
+     */
     public boolean isSeatAvailable(String seatNumber) {
-        By seatLocator = By.xpath(String.format("//button[.='%s']", seatNumber));
-        List<WebElement> seats = driver.findElements(seatLocator);
-        return !seats.isEmpty();
+        try {
+            By seatLocator = By.xpath(String.format("//button[.='%s']", seatNumber));
+            WebElement seatElement = driver.findElement(seatLocator);
+            return isElementDisplayed(seatElement);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
+    /**
+     * Check if multiple seats are all available.
+     *
+     * @param seatNumbers List of seat numbers to check
+     * @return true if all seats are available, false if any seat is unavailable
+     */
     public boolean areSeatsAvailable(List<String> seatNumbers) {
-        for (String seatNumber : seatNumbers) {
-            if (!isSeatAvailable(seatNumber)) {
-                return false;
-            }
-        }
-        return true;
+        return seatNumbers.stream().allMatch(this::isSeatAvailable);
     }
 
     public String getBookingAlertText() {

@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Showtimes organized by cinema from API response.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ShowtimesByCinema {

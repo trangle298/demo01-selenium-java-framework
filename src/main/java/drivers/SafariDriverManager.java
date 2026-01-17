@@ -6,6 +6,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
 
+/**
+ * Safari browser driver manager.
+ * Configures SafariDriver with options for page load strategy.
+ */
 public class SafariDriverManager extends DriverManager {
 
     @Override

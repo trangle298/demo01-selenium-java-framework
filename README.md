@@ -3,15 +3,17 @@
 A robust, scalable, and feature-rich Selenium test automation framework built with Java, TestNG, and Gradle. This framework follows industry best practices including the Page Object Model (POM), centralized configuration management, and comprehensive reporting capabilities.
 
 ## Key Features
-- **Page Object Model (POM)** - Maintainable and reusable page objects
+- **Page Object Model (POM)** - Maintainable and reusable page objects with component-based architecture
 - **Multi-Browser Support** - Chrome, Firefox, Edge, and Safari
-- **Parallel Execution** - Run tests in parallel for faster execution
+- **Parallel Execution** - Run tests in parallel for faster execution with thread-safe driver management
 - **Data-Driven Testing** - Support for test data providers and external JSON files
 - **Comprehensive Reporting** - Detailed and rich HTML reports with Extent Reports, automatic screenshots on test failures
 - **Logging** - Detailed logging with Log4j2
-- **Flexible Configuration** - Properties-based configuration with override support
-- **Internationalization (i18n)** - Support for Vietnamese and other languages
+- **Flexible Configuration** - Properties-based configuration with override support (System Properties > Environment Variables > config.properties)
+- **Internationalization (i18n)** - Support for Vietnamese and other languages via properties files
 - **Thread-Safe** - ThreadLocal WebDriver for parallel test execution
+- **API Integration** - API clients for test data discovery and verification
+- **Test Data Generation** - Dynamic test data generation using DataFaker library
 
 
 ## Tech Stack
@@ -33,7 +35,10 @@ A robust, scalable, and feature-rich Selenium test automation framework built wi
 ```
 src/
 ├── main/java/
-│   ├── api/                        # API helpers for data verification
+│   ├── api/                        # API clients and data extractors
+│   │   ├── cinema/                 # Cinema API integration
+│   │   ├── movie/                  # Movie API integration
+│   │   └── showtime/               # Showtime API integration
 │   ├── base/                       # Base classes
 │   │   ├── BasePage.java           # Common page actions
 │   │   └── BaseTest.java           # Base test setup
@@ -53,20 +58,17 @@ src/
 └── test/
     ├── java/
     │   ├── helpers/                # Test helpers and data providers
-    │   └── testcases/              # Test classes 
+    │   └── testcases/              # Test classes
     │       ├── auth/               # Authentication tests
     │       ├── ...                 # Other test classes grouped by feature
     │       └── e2e/                # End-to-end tests
     └── resources/                  # Test resources (config, test data, TestNG suites)
 
 test-output/                        # Generated reports and screenshots (auto-generated)
-├── ExtentReport.html               # Main HTML test report
-├── screenshots/                    # Test failure screenshots
-└── ...
 
+logs/                               # Application logs (date-stamped)
 build.gradle                        # Gradle build configuration
 gradlew                             # Gradle wrapper (Unix/Linux/macOS)
-gradlew.bat                         # Gradle wrapper (Windows)
 ```
 ## Test Data Strategy
 Due to a lack of backend access and data seeding capabilities, tests dynamically discover eligible test data via public APIs. This ensures correctness in a shared, mutable environment but increases execution time.
@@ -77,9 +79,6 @@ In a controlled test environment, these tests would instead:
 - Reset state between tests
 - Remove dynamic discovery logic
 
-----
-
-# Getting Started
 ## Prerequisites
 Before running the tests, ensure you have the following installed:
 
@@ -124,19 +123,31 @@ Main configuration file for application settings:
 browser=chrome
 
 # Page Load Strategy
+# Set to true for faster page loads (doesn't wait for all resources like images/css)
+# Set to false for complete page load (waits for everything)
 eagerPageLoadStrategy=true
 
 # Application URLs
 base.url=https://demo1.cybersoft.edu.vn
+
+# Timeouts (in seconds)
+# Default explicit wait - used by WebDriverWait in BasePage
+explicit.wait=10
+
+# Short timeout for quick checks (error messages, alerts that appear immediately)
+short.wait=3
+
+# Long timeout for slow operations (API calls, page redirects, complex interactions)
+long.wait=20
 ```
 
+**Supported browsers:** `chrome`, `firefox`, `edge`, `safari`
+
+**Timeout Usage:**
+- `explicit.wait` - Default for most element interactions
+- `short.wait` - Use `isElementDisplayedShort()` for quick checks
+- `long.wait` - Use `isElementDisplayedLong()` for slow operations
 **Supported browsers:** chrome, firefox, edge, safari
-
-### 2. Configuration Priority
-
-The framework supports multiple configuration sources with the following precedence:
-
-1. **System Properties** (highest priority)
    ```bash
    # Run with Firefox instead of Chrome
    gradlew test -Dbrowser=firefox
@@ -189,34 +200,34 @@ public class LoginPage extends BasePage {
 
 Tests are organized using TestNG groups for flexible execution. Available groups:
 
-**By Type:** `component`, `integration`, `e2e`  
-**By Feature:** `auth`, `register`, `booking`, `browsing`, `account`  
-**By Priority:** `smoke`, `critical`, `regression`, `negative`
+**By Test Type:**
+- `component` - Single component isolated tests (e.g., login form validation, individual field checks)
+- `integration` - Multi-component integration tests (e.g., login → account page navigation)
+- `e2e` - Full user journey end-to-end tests (e.g., register → login → update account → logout)
 
-**Example usage:**
-```java
-@Test(groups = {"component", "auth", "smoke"})
+**By Feature Area:**
+**By Type:** `component`, `integration`, `e2e`
+**By Feature:** `auth`, `register`, `booking`, `browsing`, `account`
+**By Priority:** `smoke`, `critical`, `regression`, `negative`
+}
+
+@Test(groups = {"integration", "auth", "account", "smoke"})
+public void testLoginThenNavigateToAccount() {
 public void testRegisterWithValidData() {
     // Test implementation
-}
-```
+gradlew test -Dgroups=smoke
 
-### Test Scripts Guidelines
-1. **Extend BaseTest**
-All test classes extend `BaseTest` for common setup and teardown logic.
+
 Key features of `BaseTest`:
-- **ThreadLocal WebDriver** - Thread-safe for parallel execution
 - **Before/After hooks** - Suite, Test, Method levels
+- **Screenshot capture** - Automatic screenshots on test failures
+
+2. **Use Helper Classes for Verification**
+
 - **Automatic reporting** - ExtentReport integration
 - **Screenshot capture** - On test failures
 
 2. **Follow AAA Pattern:**
-   ```java
-   @Test
-   public void testLogin() {
-       // Arrange
-       LoginPage loginPage = new LoginPage(getDriver());
-       
        // Act
        loginPage.login("user@example.com", "password");
        
@@ -225,28 +236,28 @@ Key features of `BaseTest`:
    }
    ```
 
-3. **Use Descriptive Test Names:**
+4. **Use Descriptive Test Names:**
    ```java
    @Test
    public void testRegisterWithValidData_ShouldCreateNewAccount();
+   
+   @Test
+3. **Use Descriptive Test Names:**
    ```
 
+5. **Add Test Groups:**
+   
+   @Test(groups = {"component", "auth", "negative"})
 4. **Add Test Groups:**
-   ```java
-   @Test(groups = {"smoke", "auth", "critical"})
    ```
 
+       return new Object[][] {
+           {"user1@test.com", "password1"},
 5. **Use Data Providers for Data-Driven Tests:**
-   ```java
-   @Test(dataProvider = "loginData")
+       };
+7. **Use Soft Assertions for E2E Tests:**
    public void testLoginWithDifferentUsers(String email, String password)
-   ```
-
-
-## Run Tests
-### Run All Tests
-
-```bash
+```java
 gradlew test
 ```
 
@@ -360,5 +371,3 @@ useDefaultListeners = false  // Only ExtentReports is generated
 
 
 ---
-
-

@@ -1,6 +1,7 @@
 package testcases.account;
 
 import base.BaseTest;
+import helpers.AccountVerificationHelper;
 import helpers.AuthTestDataGenerator;
 import helpers.Messages;
 import helpers.TestUserProvider;
@@ -13,7 +14,7 @@ import pages.AccountPage;
 import pages.LoginPage;
 import reports.ExtentReportManager;
 
-import static helpers.AssertionHelper.*;
+import static helpers.SoftAssertionHelper.*;
 
 public class AccountUpdateTest extends BaseTest {
 
@@ -36,10 +37,8 @@ public class AccountUpdateTest extends BaseTest {
         ExtentReportManager.info("Log in and navigate to Account page before test");
         loginPage.navigateToLoginPage();
         loginPage.fillLoginFormAndSubmit(originalUsername, testUser.getPassword());
-
         loginPage.topBarNavigation.waitForUserProfileLink();
 
-        // initialize page objects with the same driver/session
         accountPage = new AccountPage(getDriver());
         // navigate to account page and capture current values for revert
         accountPage.navigateToAccountPage();
@@ -58,13 +57,11 @@ public class AccountUpdateTest extends BaseTest {
         String newPhone = AuthTestDataGenerator.generateNewPhoneNumber(originalPhone);
 
         ExtentReportManager.info("Update new name, email, phone on Account Page");
-        accountPage.changeName(newName);
-        accountPage.changeEmail(newEmail);
-        accountPage.changePhoneNumber(newPhone);
+        accountPage.changeAccountInfo(newName, newEmail, newPhone);
         accountPage.saveChanges();
 
         ExtentReportManager.info("Verify account info update success");
-        verifyAccountInfoUpdateSuccess(newName, newEmail, newPhone, softAssert);
+        AccountVerificationHelper.verifyAllAccountInfoUpdateSuccess(accountPage, newName, newEmail, newPhone, getDriver(), softAssert);
 
         softAssert.assertAll();
 
@@ -83,7 +80,7 @@ public class AccountUpdateTest extends BaseTest {
         accountPage.saveChanges();
 
         ExtentReportManager.info("Verify password update success");
-        verifyPasswordUpdateSuccess(newPassword, softAssert);
+        AccountVerificationHelper.verifyPasswordUpdateSuccess(accountPage, newPassword,getDriver(), softAssert);
 
         softAssert.assertAll();
 
@@ -156,46 +153,7 @@ public class AccountUpdateTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    // --------------------------
-    // Helper methods for verification
-    // --------------------------
-
-    private void verifyUpdateSuccessAlert(SoftAssert softAssert) {
-        String expectedMsg = Messages.getAccountUpdateSuccessMessage();
-        String actualMsg = accountPage.getUpdateAlertText();
-
-        verifySoftEquals(actualMsg, expectedMsg, "Account update success message text", getDriver(), softAssert);
-    }
-
-    private void verifyAccountInfoUpdateSuccess(String newName, String newEmail, String newPhone, SoftAssert softAssert) {
-        verifyUpdateSuccessAlert(softAssert);
-        accountPage.waitForUpdateAlertToDisappear();
-
-        verifySoftEquals(accountPage.getFullName(), newName,
-                "Full Name in form after update", getDriver(), softAssert);
-        verifySoftEquals(accountPage.getEmail(), newEmail,
-                "Email in form after update", getDriver(), softAssert);
-        verifySoftEquals(accountPage.getPhoneNumber(), newPhone,
-                "Phone Number in form after update", getDriver(), softAssert);
-    }
-
-    private void verifyPasswordUpdateSuccess(String newPassword, SoftAssert softAssert) {
-        verifyUpdateSuccessAlert(softAssert);
-        accountPage.waitForUpdateAlertToDisappear();
-
-        verifySoftEquals(accountPage.getPassword(), newPassword,
-                "Password in form after update", getDriver(), softAssert);
-
-        // move to e2e
-//        accountPage.topBarNavigation.logout();
-//        LoginPage loginPage = new LoginPage(getDriver());
-//        loginPage.navigateToLoginPage();
-//        loginPage.fillLoginFormAndSubmit(originalUsername, newPassword);
-//
-//        verifySoftTrue(loginPage.topBarNavigation.isUserProfileVisible(),
-//                "Login with new password is successful", softAssert);
-    }
-
+    // ---- Helper methods for verification ----
     private void verifyUpdateFailureWithBlankEmail(SoftAssert softAssert) {
         verifySoftFalse(accountPage.isUpdateAlertDisplayed(),
                 "No update alert displayed for failed update with blank email", getDriver(), softAssert);
@@ -249,27 +207,6 @@ public class AccountUpdateTest extends BaseTest {
         accountPage.refreshPage();
         verifySoftEquals(accountPage.getPassword(), originalPassword,
                 "Password remains unchanged after failed update", getDriver(), softAssert);
-
-        //move this to e2e tests
-//        ExtentReportManager.info("Logout and verify login fails with new short password and succeeds with original password");
-//        accountPage.topBarNavigation.logout();
-//
-//        LoginPage loginPage = new LoginPage(getDriver());
-//        loginPage.navigateToLoginPage();
-//        loginPage.fillLoginFormAndSubmit(originalUsername, shortPassword);
-//
-//        verifySoftTrue(loginPage.isInvalidPasswordMessageDisplayed(),
-//                "Invalid password error displayed for attempted new password", softAssert);
-//
-//        verifySoftFalse(loginPage.topBarNavigation.isUserProfileVisible(),
-//                "Login failed with attempted new password", softAssert);
-//
-//        loginPage.refreshPage();
-//        loginPage.fillLoginFormAndSubmit(originalUsername, originalPassword);
-//
-//        verifySoftTrue(loginPage.topBarNavigation.isUserProfileVisible(),
-//                "Login successful with original password", softAssert);
-
     }
 
     private void verifyUsernameRemainsUnchanged(String newUsername, SoftAssert softAssert) {
@@ -283,7 +220,7 @@ public class AccountUpdateTest extends BaseTest {
         loginPage.navigateToLoginPage();
         loginPage.fillLoginFormAndSubmit(newUsername, originalPassword);
 
-        verifySoftTrue(loginPage.isLoginErrorMessageDisplayed(),
+        verifySoftTrue(loginPage.isLoginErrorAlertDisplayed(),
                 "Login error displayed for attempted new username", getDriver(), softAssert);
 
         verifySoftFalse(loginPage.topBarNavigation.isUserProfileVisible(),
@@ -297,7 +234,7 @@ public class AccountUpdateTest extends BaseTest {
     }
 
     private void revertAccountChanges(String originalName, String originalEmail, String originalPhone) {
-        accountPage.refreshPage();  // why does the form behave weirdly without refresh? (need to clear field twice, need to input/clear first letter twice for it to work)
+        accountPage.refreshPage();
 
         if (originalName == null || originalName.trim().isEmpty()) {
             ExtentReportManager.fail("Original name is empty. Keeping updated name.");

@@ -9,11 +9,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import static api.Movie.MovieDataExtractor.extractAllMovieShowtimeIds;
-import static api.Showtime.ShowtimeApiClient.fetchShowtimeData;
-import static api.Showtime.ShowtimeDataExtractor.getAvailableSeats;
-import static api.Showtime.ShowtimeDataExtractor.getReservedSeats;
+import static api.movie.MovieDataExtractor.extractAllMovieShowtimeIds;
+import static api.showtime.ShowtimeApiClient.fetchShowtimeData;
+import static api.showtime.ShowtimeDataExtractor.getAvailableSeats;
+import static api.showtime.ShowtimeDataExtractor.getReservedSeats;
 
+/**
+ * Provides sample showtime and seat data for booking tests.
+ * Fetches real data from API and filters showtimes based on seat availability.
+ *
+ * <p>Use this to get random test data for:
+ * <ul>
+ *   <li>Showtimes with available seats</li>
+ *   <li>Showtimes with no available seats (fully booked)</li>
+ *   <li>Random seat selections from available seats</li>
+ * </ul>
+ */
 public class BookingSamplesProvider {
 
     private static final Logger LOG = LogManager.getLogger(BookingSamplesProvider.class);
@@ -47,10 +58,10 @@ public class BookingSamplesProvider {
             if (sampleShowtimes.size() >= size) break;
         }
 
-        if (sampleShowtimes.size() == 0) {
-            System.out.println("No showtimes found matching criteria.");
+        if (sampleShowtimes.isEmpty()) {
+            LOG.info("No showtimes found matching criteria.");
         } else if (sampleShowtimes.size() < size) {
-            System.out.println("Only found " + sampleShowtimes.size() + "showtimes matching criteria.");
+            LOG.info("Only found " + sampleShowtimes.size() + " showtimes matching criteria.");
         }
         return sampleShowtimes;
     }
@@ -60,11 +71,10 @@ public class BookingSamplesProvider {
             Integer sampleSize
     ) throws Exception {
 
-        List<Showtime> sampleShowtimes = new ArrayList<>();
+        List<Showtime> sampleShowtimes;
 
         sampleShowtimes = getShowtimesByFilter(
                 (showtimeId, seats) -> {
-                    Showtime showtime = fetchShowtimeData(showtimeId);
                     long availableSeats = getAvailableSeats(showtimeId).size();
                     return availableSeats >= seats;
                 },
@@ -72,13 +82,10 @@ public class BookingSamplesProvider {
                 sampleSize
         );
 
-        if (sampleShowtimes.size() == 0 && seatQuantity > 1) {
-
+        if (sampleShowtimes.isEmpty() && seatQuantity > 1) {
             LOG.info("No showtimes found with" + seatQuantity + "available seats." + "Retrying with seat quantity of 1.");
-
             sampleShowtimes = getShowtimesByFilter(
                     (showtimeId, seats) -> {
-                        Showtime showtime = fetchShowtimeData(showtimeId);
                         long availableSeats = getAvailableSeats(showtimeId).size();
                         return availableSeats >= seats;
                     },
@@ -86,7 +93,7 @@ public class BookingSamplesProvider {
                     sampleSize
             );
 
-            if (sampleShowtimes.size() == 0) {
+            if (sampleShowtimes.isEmpty()) {
                 throw new Error ("No showtimes found with available seats.");
             }
 
@@ -94,16 +101,16 @@ public class BookingSamplesProvider {
         return sampleShowtimes;
     }
 
+    // To be used in upcoming test cases
     public static List<Showtime> getShowtimesWithReservedSeats(
             Integer seatQuantity,
             Integer sampleSize
     ) throws Exception {
 
-        List<Showtime> sampleShowtimes = new ArrayList<>();
+        List<Showtime> sampleShowtimes;
 
         sampleShowtimes = getShowtimesByFilter(
                 (showtimeId, seats) -> {
-                    Showtime showtime = fetchShowtimeData(showtimeId);
                     long reservedSeats = getReservedSeats(showtimeId).size();
                     return reservedSeats >= seats;
                 },
@@ -111,13 +118,10 @@ public class BookingSamplesProvider {
                 sampleSize
         );
 
-        if (sampleShowtimes.size() == 0 && seatQuantity > 1) {
-
-            System.out.println("No showtimes found with" + seatQuantity + "reserved seats." + "Retrying with seat quantity of 1.");
-
+        if (sampleShowtimes.isEmpty() && seatQuantity > 1) {
+            LOG.info("No showtimes found with " + seatQuantity + " reserved seats. Retrying with seat quantity of 1.");
             sampleShowtimes = getShowtimesByFilter(
                     (showtimeId, seats) -> {
-                        Showtime showtime = fetchShowtimeData(showtimeId);
                         long reservedSeats = getReservedSeats(showtimeId).size();
                         return reservedSeats >= seats;
                     },

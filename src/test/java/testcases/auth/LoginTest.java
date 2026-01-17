@@ -12,7 +12,7 @@ import reports.ExtentReportManager;
 
 import java.time.Instant;
 
-import static helpers.AssertionHelper.*;
+import static helpers.SoftAssertionHelper.*;
 import static helpers.AuthVerificationHelper.verifyLoginSuccess;
 
 public class LoginTest extends BaseTest {
@@ -39,6 +39,8 @@ public class LoginTest extends BaseTest {
 
     @Test(groups = {"integration", "auth", "login", "smoke", "critical"})
     public void testValidLogin() {
+        // Use SoftAssert for multiple related checks (alert displayed + message text + user logged in)
+        // This allows us to see the full picture if something fails
         SoftAssert softAssert = new SoftAssert();
 
         ExtentReportManager.info("Step 2: Submit login form with valid credentials");
@@ -47,7 +49,7 @@ public class LoginTest extends BaseTest {
         ExtentReportManager.info("Step 3: Verify login success");
         verifyLoginSuccess(loginPage, getDriver(), softAssert);
 
-        softAssert.assertAll();
+        softAssert.assertAll();  // Reports all failures together
     }
 
     @Test(groups = {"integration", "auth", "login"})
@@ -98,17 +100,15 @@ public class LoginTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    // --------------------------
-    // Helper methods for verification
-    // --------------------------
+    // ---- Helper methods for verification ----
     private void verifyEmptyPasswordError(SoftAssert softAssert) {
-        boolean errorMsgDisplayed = verifySoftTrue(loginPage.isInvalidPasswordMessageDisplayed(),
+        boolean errorMsgDisplayed = verifySoftTrue(loginPage.isInvalidPasswordMsgDisplayed(),
                 "Password error message is displayed", getDriver(), softAssert);
 
         // Only verify text if error message is displayed
         if (errorMsgDisplayed) {
             String expectedMsg = Messages.getRequiredFieldError();
-            String actualMsg = loginPage.getPasswordErrorMsgText();
+            String actualMsg = loginPage.getPasswordValidationText();
             verifySoftEquals(actualMsg, expectedMsg, "Empty password error message text", getDriver(), softAssert);
         }
 
@@ -119,7 +119,7 @@ public class LoginTest extends BaseTest {
 
     private void verifyInvalidCredentialsError(SoftAssert softAssert) {
         // Verify login error alert displayed
-        boolean alertDisplayed = verifySoftTrue(loginPage.isLoginErrorMessageDisplayed(),
+        boolean alertDisplayed = verifySoftTrue(loginPage.isLoginErrorAlertDisplayed(),
                                                "Login error alert is displayed",getDriver(), softAssert);
 
         // Verify error message text (only if alert is displayed)
@@ -133,5 +133,4 @@ public class LoginTest extends BaseTest {
         verifySoftFalse(loginPage.topBarNavigation.isUserProfileVisible(),
                        "User profile link should not be visible", getDriver(), softAssert);
     }
-
 }

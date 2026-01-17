@@ -102,7 +102,6 @@ public class Messages {
         return getString("filter.missing." + fieldName.name());
     }
 
-
     // --------------------------
     // Generic getString (fallback for dynamic keys if needed)
     // --------------------------
@@ -120,26 +119,5 @@ public class Messages {
             return key;
         }
     }
-
-    /**
-     * Verify that all expected message keys exist in the bundle.
-     * Call this once during test initialization to catch missing keys early.
-     * @throws MissingResourceException if any expected key is missing
-     */
-//    public static void verifyAllKeysExist() {
-//        // This will throw if any key is missing
-//        getRequiredFieldError();
-//        getPasswordMinLengthError();
-//        getNameContainsNumberError();
-//        getPasswordMismatchError();
-//        getLoginSuccessMessage();
-//        getLoginErrorMessage();
-//        getRegisterSuccessMessage();
-//        getRegisterExistingUsernameError();
-//        getRegisterExistingEmailError();
-//        getAccountUpdateSuccessMessage();
-//        getPhoneRequiredError();
-//        getPhoneInvalidError();
-//    }
 }
 

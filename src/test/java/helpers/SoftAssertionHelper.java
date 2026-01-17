@@ -10,17 +10,33 @@ import org.apache.logging.log4j.Logger;
 import static reports.ExtentReportManager.captureScreenshot;
 
 /**
- * Generic assertion utilities for use across all test classes and helper classes.
+ * Soft assertion utilities for use across all test classes and helper classes.
  *
- * These are STATIC methods that can be called from:
- * - Test classes (directly or via BaseTest if you want)
+ * Can be called from:
+ * - Test classes (directly or via BaseTest)
  * - Helper classes (AuthVerificationHelper, BookingVerificationHelper, etc.)
  *
- * Design Pattern: Centralized assertion logic with ExtentReport integration and screenshot capture.
+ * DESIGN PATTERN: Centralized soft assertion logic with ExtentReport integration
+ * and automatic screenshot capture.
+ *
+ * WHEN TO USE SOFT ASSERTIONS (this class):
+ * - Multiple related checks in one test
+ * - Form validation (check all field errors, not just first)
+ * - UI state verification (multiple elements)
+ * - E2E flows with multiple verification points
+ *
+ * WHEN TO USE HARD ASSERTIONS (TestNG Assert):
+ * - Prerequisites/setup failures (login, navigation)
+ * - Single-check tests
+ * - Critical path failures (if it fails, rest is meaningless)
+ *
+ * IMPORTANT: Always call softAssert.assertAll() at the end of your test!
+ *
+ * For detailed guidance, see ASSERTION_STRATEGY_GUIDE.md in the project root.
  */
-public class AssertionHelper {
+public class SoftAssertionHelper {
 
-    private static final Logger LOG = LogManager.getLogger(AssertionHelper.class);
+    private static final Logger LOG = LogManager.getLogger(SoftAssertionHelper.class);
 
     /**
      * Verify a condition is true with soft assertion.

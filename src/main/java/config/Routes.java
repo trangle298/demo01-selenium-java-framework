@@ -1,5 +1,8 @@
 package config;
 
+/**
+ * Application route constants.
+ */
 public final class Routes {
 
     private Routes() {}

@@ -11,6 +11,11 @@ import reports.ExtentReportManager;
 
 import java.lang.reflect.Method;
 
+/**
+ * Base class for all test classes.
+ * Manages WebDriver lifecycle, ExtentReports, and TestNG hooks.
+ * Supports parallel test execution using ThreadLocal.
+ */
 public class BaseTest {
 
     protected final Logger LOG = LogManager.getLogger(getClass());

@@ -11,8 +11,8 @@ import pages.HomePage;
 import pages.LoginPage;
 import reports.ExtentReportManager;
 
-import static helpers.AssertionHelper.verifySoftFalse;
-import static helpers.AssertionHelper.verifySoftTrue;
+import static helpers.SoftAssertionHelper.verifySoftFalse;
+import static helpers.SoftAssertionHelper.verifySoftTrue;
 import static helpers.AuthVerificationHelper.verifyLogoutSuccess;
 
 public class LogoutTest extends BaseTest {
@@ -65,10 +65,7 @@ public class LogoutTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    // --------------------------
-    // Helper methods for verification
-    // --------------------------
-
+    // ---- Helper methods for verification ----
     private void verifyLogoutCancelled(SoftAssert softAssert) {
         verifySoftFalse(homePage.topBarNavigation.isLogoutSuccessAlertVisible(),
                 "Logout success alert should not be visible after cancelling logout", getDriver(), softAssert);

@@ -17,6 +17,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Base class for all Page Objects.
+ * Provides common wait helpers, actions, and utility methods.
+ */
 public class BasePage {
 
     protected final Logger LOG = LogManager.getLogger(getClass());
@@ -25,52 +29,62 @@ public class BasePage {
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        // Use configurable timeout from config.properties (default: 10 seconds)
+        int explicitWait = ConfigManager.getExplicitWait();
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(explicitWait));
         PageFactory.initElements(driver, this);
     }
 
     // ---- Wait Helpers --- //
-    // Wait for element to be visible
+    // Wait for element to meet condition - presence, visibility, clickability, etc.
     public WebElement waitForVisibilityOfElementLocated(WebElement element) {
         return wait.until(ExpectedConditions.visibilityOf(element));
     }
 
-    // Wait for all elements in list to be visible
     public void waitForVisibilityOfAllElements(List<WebElement> elements) {
         wait.until(ExpectedConditions.visibilityOfAllElements(elements));
     }
 
-    // Wait for element to disappear
     public void waitForInvisibilityOfElementLocated(WebElement element) {
         wait.until(ExpectedConditions.invisibilityOf(element));
     }
 
-    // Wait for element to be clickable
     public WebElement waitForElementToBeClickable(WebElement element) {
         return wait.until(ExpectedConditions.elementToBeClickable(element));
     }
 
-    // Wait for nested element to be present
     public WebElement waitForNestedElementToBePresent(WebElement parentElement, By childLocator) {
         return wait.until(ExpectedConditions.presenceOfNestedElementLocatedBy(parentElement, childLocator));
     }
 
-    // Wait for exact URL match
-    public boolean waitForUrl(String url) {
+    // Wait for URL / partial URL
+    public boolean waitForUrl(String expectedUrl) {
+        // Normalize expected URL (remove trailing slash for comparison)
+        String normalizedExpected = expectedUrl.endsWith("/") ? expectedUrl.substring(0, expectedUrl.length() - 1) : expectedUrl;
+
         try {
-            Boolean result = wait.until(ExpectedConditions.urlToBe(url));
+            // Wait for URL to match (with normalization)
+            Boolean result = wait.until(driver -> {
+                String currentUrl = driver.getCurrentUrl();
+                if (currentUrl == null) {
+                    return false;
+                }
+                String normalizedCurrent = currentUrl.endsWith("/") ? currentUrl.substring(0, currentUrl.length() - 1) : currentUrl;
+                return normalizedCurrent.equals(normalizedExpected);
+            });
             return result != null && result;
         } catch (Exception e) {
+            LOG.warn("Wait for URL: " + expectedUrl + " - FAILED. Current URL: " + driver.getCurrentUrl());
             return false;
         }
     }
 
-    // Wait for URL to contain specific text
     public boolean waitForUrlContains(String urlFragment) {
         try {
             Boolean result = wait.until(ExpectedConditions.urlContains(urlFragment));
             return result != null && result;
         } catch (Exception e) {
+            LOG.warn("Wait for URL containing: " + urlFragment + " - FAILED. Current URL: " + driver.getCurrentUrl());
             return false;
         }
     }
@@ -80,17 +94,16 @@ public class BasePage {
     public void refreshPage() {
         String currentUrl = driver.getCurrentUrl();
         driver.get(currentUrl);
-        driver.navigate().to(currentUrl);
     }
 
     // Type text into input field
-    public void sendKeys(WebElement element, String value) {
+    public void enterText(WebElement element, String value) {
         waitForVisibilityOfElementLocated(element);
         element.sendKeys(value);
     }
 
     // Clear input field
-    public void clearField(WebElement element) {
+    public void clear(WebElement element) {
         Actions actions = new Actions(driver);
         waitForVisibilityOfElementLocated(element);
         actions.click(element)
@@ -104,34 +117,28 @@ public class BasePage {
         element.click();
     }
 
-    // Select dropdown option
+    // Select dropdown option by value or visible text
     public void selectDropdownOptionByValue(WebElement dropdown, String value) {
-        waitForVisibilityOfElementLocated(dropdown);
         Select select = new Select(dropdown);
+        By optionLocator = By.xpath(String.format("//option[@value='%s']", value));
+
+        waitForNestedElementToBePresent(dropdown, optionLocator);
         select.selectByValue(value);
     }
 
     public void selectDropdownOptionByVisibleText(WebElement dropdown, String visibleText) {
-        waitForVisibilityOfElementLocated(dropdown);
         Select select = new Select(dropdown);
+        By optionLocator = By.xpath(String.format("//option[text()='%s']", visibleText));
+
+        waitForNestedElementToBePresent(dropdown, optionLocator);
         select.selectByVisibleText(visibleText);
     }
 
-
     // ---- Getters ---- //
-    // Get text from element
+    // Get text and attribute values
     public String getText(WebElement element) {
         waitForVisibilityOfElementLocated(element);
         return element.getText();
-    }
-
-    public String getFieldValue(WebElement field) {
-        waitForVisibilityOfElementLocated(field);
-        return field.getAttribute("value");
-    }
-    protected String url(String path) {
-        if (path == null || path.isEmpty()) return ConfigManager.getBaseUrl();
-        return ConfigManager.getBaseUrl() + path;
     }
 
     public List<String> getAllOptionsText(WebElement selectElement, By optionLocator) {
@@ -146,11 +153,16 @@ public class BasePage {
         return elementTexts;
     }
 
+    public String getFieldValue(WebElement field) {
+        waitForVisibilityOfElementLocated(field);
+        return field.getAttribute("value");
+    }
+
     // ---- Utility Methods ---- //
-    // Check if element is displayed (returns false instead of throwing exception)
+    // Check if element is displayed (returns false instead of throwing exception), default timeout specified in wait
     public boolean isElementDisplayed(WebElement element) {
         try {
-            wait.until(ExpectedConditions.visibilityOf(element));
+            waitForVisibilityOfElementLocated(element);
             return true;
         } catch (Exception e) {
             return false;
@@ -158,7 +170,7 @@ public class BasePage {
     }
 
     // Check if element is displayed with custom timeout
-    public boolean isElementDisplayed(WebElement element, int timeoutSeconds) {
+    public boolean isElementDisplayedCustom(WebElement element, int timeoutSeconds) {
         try {
             WebDriverWait customWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
             customWait.until(ExpectedConditions.visibilityOf(element));
@@ -168,5 +180,30 @@ public class BasePage {
         }
     }
 
+    /**
+     * Check if element is displayed using short timeout from config.properties.
+     * Use for quick checks like error messages or alerts that appear immediately.
+     * Default: 3 seconds (configurable via short.wait property)
+     */
+    public boolean isElementDisplayedShort(WebElement element) {
+        int shortWait = ConfigManager.getShortWait();
+        return isElementDisplayedCustom(element, shortWait);
+    }
+
+    /**
+     * Check if element is displayed using long timeout from config.properties.
+     * Use for slow operations like API responses, page redirects, or complex interactions.
+     * Default: 20 seconds (configurable via long.wait property)
+     */
+    public boolean isElementDisplayedLong(WebElement element) {
+        int longWait = ConfigManager.getLongWait();
+        return isElementDisplayedCustom(element, longWait);
+    }
+
+    // Build full URL from base URL and path
+    protected String url(String path) {
+        if (path == null || path.isEmpty()) return ConfigManager.getBaseUrl();
+        return ConfigManager.getBaseUrl() + path;
+    }
 
 }

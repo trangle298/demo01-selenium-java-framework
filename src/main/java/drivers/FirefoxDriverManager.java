@@ -6,6 +6,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 
+/**
+ * Firefox browser driver manager.
+ * Configures FirefoxDriver with options for page load strategy.
+ */
 public class FirefoxDriverManager extends DriverManager {
 
     @Override

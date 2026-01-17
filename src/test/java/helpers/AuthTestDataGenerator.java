@@ -5,10 +5,14 @@ import net.datafaker.Faker;
 
 import java.util.UUID;
 
+/**
+ * Generates random test data for authentication and account forms using Faker library.
+ */
 public class AuthTestDataGenerator {
 
     private static final Faker faker = new Faker();
 
+    // ---- Generate valid register data ----
     public static RegisterRequest generateValidRegisterData() {
 
         String taiKhoan = UUID.randomUUID().toString();
@@ -23,6 +27,7 @@ public class AuthTestDataGenerator {
         );
     }
 
+    // ---- Generate invalid auth/account data ----
     public static String generateInvalidShortPassword() {
         return faker.internet().password(1, 5);
     }
@@ -31,6 +36,7 @@ public class AuthTestDataGenerator {
         return faker.name().firstName() + faker.number().digits(3);
     }
 
+    // ---- Generate modified valid data based on current values ----
     public static String generateNewName(String currentName) {
         return currentName + faker.name().firstName();
     }
@@ -50,6 +56,4 @@ public class AuthTestDataGenerator {
     public static String generateNewPassword(String currentPassword) {
         return currentPassword + faker.number().digits(2);
     }
-
-
 }

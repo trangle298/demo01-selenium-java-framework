@@ -7,6 +7,9 @@ import model.TestUserType;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * Provides test user data loaded from test-users.json.
+ */
 public class TestUserProvider {
 
     private static final Map<String, TestUser> users;
