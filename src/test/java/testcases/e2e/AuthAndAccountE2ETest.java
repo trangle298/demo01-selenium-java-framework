@@ -16,7 +16,7 @@ import reports.ExtentReportManager;
 
 import static helpers.verifications.AuthVerificationHelper.*;
 import static helpers.verifications.AccountVerificationHelper.verifyAccountDataMatchesRegistration;
-import static helpers.utils.SoftAssertionHelper.verifySoftEquals;
+import static helpers.verifications.SoftAssertionHelper.verifySoftEquals;
 
 /**
  * E2E Test: Complete Authentication and Account management Flow
@@ -68,7 +68,7 @@ public class AuthAndAccountE2ETest extends BaseTest {
         // ============================================
         ExtentReportManager.info("Login with new credentials");
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(registerData.getUsername(), registerData.getPassword());
+        loginPage.fillLoginFormThenSubmit(registerData.getUsername(), registerData.getPassword());
 
         verifyLoginSuccess(loginPage, getDriver(), softAssert);
         verifyUserButtonDisplaysCorrectName(loginPage, registerData.getFullName(), getDriver(), softAssert);
@@ -80,7 +80,7 @@ public class AuthAndAccountE2ETest extends BaseTest {
         accountPage.navigateToAccountPage();
 
         ExtentReportManager.info("Wait for account form to be visible then verify displayed data");
-        accountPage.waitForAccountForm();
+        accountPage.waitForAccountFormToAppear();
 
         UserAccount accountDataFromUI = accountPage.getAccountData();
         verifyAccountDataMatchesRegistration(registerData, accountDataFromUI, "UI Account Page", getDriver(), softAssert);
@@ -94,9 +94,9 @@ public class AuthAndAccountE2ETest extends BaseTest {
         String newPhone = AuthTestDataGenerator.generateNewPhoneNumber(accountPage.getPhoneNumber());
 
         accountPage.changeAccountInfo(newName, newEmail, newPhone);
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
-        AccountVerificationHelper.verifyAccountFieldsUpdateSuccess(accountPage, newName, newEmail, newPhone, getDriver(), softAssert);
+        AccountVerificationHelper.verifyPersonalInfoUpdateSuccess(accountPage, newName, newEmail, newPhone, getDriver(), softAssert);
 
         // Verify update persisted in backend
         ExtentReportManager.info("Verify update persisted in backend");
@@ -112,7 +112,7 @@ public class AuthAndAccountE2ETest extends BaseTest {
         accountPage.topBarNavigation.logout();
 
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(registerData.getUsername(), registerData.getPassword());
+        loginPage.fillLoginFormThenSubmit(registerData.getUsername(), registerData.getPassword());
 
         verifyLoginSuccess(loginPage, getDriver(), softAssert);
         verifyUserButtonDisplaysCorrectName(loginPage, newName, getDriver(), softAssert);

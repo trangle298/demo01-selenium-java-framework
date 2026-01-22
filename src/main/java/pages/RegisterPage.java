@@ -7,6 +7,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import pages.components.PopupDialog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class RegisterPage extends CommonPage {
     // ============================================
     // ---- Page Elements ----
     // ============================================
-    
+
     // ---- Form fields ----
     @FindBy(id = "taiKhoan")
     private WebElement txtUsername;
@@ -37,13 +38,12 @@ public class RegisterPage extends CommonPage {
     @FindBy(css = "button[type='submit']")
     private WebElement btnRegister;
 
-    // ---- Form alerts ----
-    @FindBy(css = "div[role='dialog']")
-    private WebElement alertRegisterSuccess;
-    @FindBy(css = "div[role='dialog'] h2")
-    private WebElement lblRegisterSuccessMessage;
+    // ---- Form Error alert ----
     @FindBy(css = "div[role='alert']")
     private WebElement alertRegisterError;
+
+    // ---- Components ----
+    private PopupDialog dlgSuccess;
     
     // ---- Static Fields & Initialization ----
     // Map for field name to field ID mapping (Vietnamese field names)
@@ -64,12 +64,13 @@ public class RegisterPage extends CommonPage {
     public RegisterPage(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
+        this.dlgSuccess = new PopupDialog(driver);
     }
     
     // ============================================
     // ---- Public Methods  ----
     // ============================================
-    
+
     // ---- Navigation ----
     public void navigateToRegisterPage() {
         LOG.info("Navigate to Register page");
@@ -127,45 +128,35 @@ public class RegisterPage extends CommonPage {
         clickRegister();
     }
     
-    // ---- Messages and alerts ----
-    /**
-     * Check if validation error is displayed for a specific field.
-     * Uses dynamic locator construction based on pattern: id="{fieldId}-helper-text"
-     *
-     * @param fieldName The field name (case-insensitive): "username", "password", "confirmPassword", "fullName", "email"
-     * @return true if error element is displayed, false otherwise
-     */
-    public boolean isFieldValidationErrorDisplayed(String fieldName) {
-        WebElement errorElement = getFieldErrorElement(fieldName);
+    // ---- Getters ----
+    // Get success dialog state and text
+    public boolean isRegisterSuccessDialogDisplayed() {
+        return dlgSuccess.isDialogDisplayed();
+    }
+
+    public String getRegisterSuccessMsgText() {
+        return dlgSuccess.getDialogTitle();
+    }
+
+    // Get validation error state and text
+    // fieldName (case-insensitive): "username", "password", "confirmPassword", "fullName", "email"
+    public boolean isFieldValidationMsgDisplayed(String fieldName) {
+        WebElement errorElement = getFieldValidationMsgElement(fieldName);
         if (errorElement == null) {
             return false;
         }
         return isElementDisplayedShort(errorElement);
     }
 
-    /**
-     * Get validation error text for a specific field.
-     * Uses dynamic locator construction based on pattern: id="{fieldId}-helper-text"
-     *
-     * @param fieldName The field name (case-insensitive): "username", "password", "confirmPassword", "fullName", "email"
-     * @return The error message text, or empty string if field not found
-     */
-    public String getFieldErrorText(String fieldName) {
-        WebElement errorElement = getFieldErrorElement(fieldName);
+    public String getFieldValidationText(String fieldName) {
+        WebElement errorElement = getFieldValidationMsgElement(fieldName);
         if (errorElement == null) {
             return "";
         }
         return getText(errorElement);
     }
 
-    public boolean isRegisterSuccessAlertDisplayed() {
-        return isElementDisplayed(alertRegisterSuccess);
-    }
-
-    public String getRegisterSuccessMsgText() {
-        return getText(lblRegisterSuccessMessage);
-    }
-
+    // Get register error alert state and text
     public boolean isRegisterErrorAlertDisplayed() {
         return isElementDisplayedShort(alertRegisterError);
     }
@@ -183,7 +174,7 @@ public class RegisterPage extends CommonPage {
      * @param fieldName Field name in English (e.g., "username", "password", "email")
      * @return WebElement for the error label, or null if field not found
      */
-    private WebElement getFieldErrorElement(String fieldName) {
+    private WebElement getFieldValidationMsgElement(String fieldName) {
         String fieldId = FIELD_ID_MAP.get(fieldName.toLowerCase());
         if (fieldId == null) {
             LOG.warn("Unknown field name: " + fieldName);
@@ -194,5 +185,4 @@ public class RegisterPage extends CommonPage {
         String errorElementId = fieldId + "-helper-text";
         return waitForVisibilityOfElementLocatedBy(By.id(errorElementId));
     }
-    
 }

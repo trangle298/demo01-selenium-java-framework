@@ -1,15 +1,13 @@
 package helpers.verifications;
 
-import helpers.utils.MessagesUI;
+import helpers.providers.MessagesProvider;
 import org.openqa.selenium.WebDriver;
-import org.testng.Assert;
 import org.testng.asserts.SoftAssert;
 import pages.BookingPage;
-import reports.ExtentReportManager;
 
 import java.util.List;
 
-import static helpers.utils.SoftAssertionHelper.*;
+import static helpers.verifications.SoftAssertionHelper.*;
 
 /**
  * Helper class for booking-related verifications.
@@ -21,8 +19,9 @@ import static helpers.utils.SoftAssertionHelper.*;
 public class BookingVerificationHelper {
 
     /**
-     * Verify booking success - message displayed, seats no longer available after booking.
+     * Verify booking success - dialog displayed with correct text, seats no longer available after booking.
      * Uses SoftAssertionHelper to automatically capture screenshots on each failed soft assertion.
+     * NOTE: Current website does not implement a payment step, so booking is confirmed immediately after seat selection.
      *
      * @param bookingPage The ShowtimePage instance
      * @param selectedSeats List of seat numbers that were booked
@@ -30,30 +29,29 @@ public class BookingVerificationHelper {
      * @param softAssert The SoftAssert instance for accumulating assertions
      */
     public static void verifyBookingSuccess(BookingPage bookingPage, List<String> selectedSeats, WebDriver driver, SoftAssert softAssert) throws InterruptedException {
-        // Verify success by checking alert message and seat availability, current website did not implement payment flow
-        boolean isAlertDisplayed = bookingPage.isBookingAlertDisplayed();
-        verifySoftTrue(isAlertDisplayed,
-                "Booking alert is displayed", driver, softAssert);
+        boolean isDialogDisplayed = bookingPage.isBookingDialogDisplayed();
+        verifySoftTrue(isDialogDisplayed,
+                "Booking dialog is displayed", driver, softAssert);
 
-        if (isAlertDisplayed) {
-            String expectedMsg = MessagesUI.getBookingSuccessMessage();
-            String actualMsg = bookingPage.getBookingAlertText();
-            verifySoftEquals(actualMsg, expectedMsg, "Alert success message text", driver, softAssert);
+        if (isDialogDisplayed) {
+            String expectedMsg = MessagesProvider.getBookingSuccessMessage();
+            String actualMsg = bookingPage.getBookingDialogHeader();
+            verifySoftEquals(actualMsg, expectedMsg, "Dialog text for successful booking", driver, softAssert);
 
             // Close the alert to proceed
-            bookingPage.clickAlertConfirmButton();
+            bookingPage.confirmAndCloseDialog();
         }
 
         // Refresh page to ensure seat map is updated before verifying seats are no longer available
         bookingPage.refreshPage();
-        bookingPage.waitForSeatMapToLoad();
+//        bookingPage.waitForSeatMapToLoad();
 
         verifySoftFalse(bookingPage.areSeatsAvailable(selectedSeats),
                 "Booked seats: " + selectedSeats + " are no longer available" , driver, softAssert);
     }
 
     /**
-     * Verify booking blocked for guest user - login required message displayed, seats remains available after attempt.
+     * Verify booking blocked for guest user - login required dialog displayed, seats remains available after attempt.
      * Uses SoftAssertionHelper to automatically capture screenshots on each failed soft assertion.
      *
      * @param bookingPage The ShowtimePage instance
@@ -62,9 +60,18 @@ public class BookingVerificationHelper {
      * @param softAssert The SoftAssert instance for accumulating assertions
      */
     public static void verifyBookingBlockedForGuest(BookingPage bookingPage, List<String> selectedSeats, WebDriver driver, SoftAssert softAssert) {
-        String expectedMsg = MessagesUI.getUnauthenticatedBookingError();
-        String actualMsg = bookingPage.getBookingAlertText();
-        verifySoftEquals(actualMsg, expectedMsg, "Unauthenticated booking error text", driver, softAssert);
+        boolean isDialogDisplayed = bookingPage.isBookingDialogDisplayed();
+        verifySoftTrue(isDialogDisplayed,
+                "Booking dialog is displayed", driver, softAssert);
+
+        if (isDialogDisplayed) {
+            String expectedMsg = MessagesProvider.getUnauthenticatedBookingError();
+            String actualMsg = bookingPage.getBookingDialogHeader();
+            verifySoftEquals(actualMsg, expectedMsg, "Dialog text for Login request for unauthenticated booking", driver, softAssert);
+
+            // Close the alert to decline login redirect and proceed
+            bookingPage.denyAndCloseDialog();
+        }
 
         bookingPage.refreshPage();
         bookingPage.waitForSeatMapToLoad();
@@ -75,15 +82,23 @@ public class BookingVerificationHelper {
     }
 
     /**
-     * Verify "no seat selected" error message is displayed.
+     * Verify dialog with empty seat selection error message is displayed.
      * Uses hard assertion since this is typically the main assertion of the test.
      *
      * @param bookingPage The ShowtimePage instance
      */
-    public static void verifyNoSeatSelectedError(BookingPage bookingPage) {
-        String expectedMsg = MessagesUI.getNoSeatSelectedError();
-        String actualMsg = bookingPage.getBookingAlertText();
-        Assert.assertEquals(actualMsg, expectedMsg, "Booking error for no seat selection");
-        ExtentReportManager.pass("No seat selection error displayed correctly: " + actualMsg);
+    public static void verifyNoSeatSelectedDialog(BookingPage bookingPage, WebDriver driver, SoftAssert softAssert) {
+
+        boolean isDialogDisplayed = bookingPage.isBookingDialogDisplayed();
+        verifySoftTrue(isDialogDisplayed,
+                "Booking dialog is displayed", driver, softAssert);
+
+        if (isDialogDisplayed) {
+            String expectedMsg = MessagesProvider.getNoSeatSelectedError();
+            String actualMsg = bookingPage.getBookingDialogHeader();
+            verifySoftEquals(actualMsg, expectedMsg, "Dialog text for Empty Seat selection error", driver, softAssert);
+
+            bookingPage.confirmAndCloseDialog();
+        }
     }
 }

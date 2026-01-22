@@ -1,4 +1,4 @@
-package helpers.utils;
+package helpers.providers;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Generic data manipulation functions for randomness
+ * Utility class for selecting random samples from a list.
+ * Provides methods to get random samples of specified size or within a range.
  */
-public class PickRandomHelper {
+public class RandomSampleProvider {
 
-    private static final Logger LOG = LogManager.getLogger(PickRandomHelper.class);
-
+    private static final Logger LOG = LogManager.getLogger(RandomSampleProvider.class);
 
     /**
      * Get a random sample of items from the original list.
@@ -45,6 +45,32 @@ public class PickRandomHelper {
         return sample;
     }
 
+   /**
+     * Get a random sample of items from the original list within the specified quantity range.
+     *
+     * @param originalList The original list to sample from
+     * @param minQuan      Minimum number of items to select
+     * @param maxQuan      Maximum number of items to select
+     * @param <T>          The type of items in the list
+     * @return A list containing the random sample
+     */
+    public static <T> List <T> getRandomSamplesFromList(List<T> originalList, int minQuan, int maxQuan) {
+        // Determine the maximum number of samples that can be selected
+        int maxSize = Math.min(originalList.size(), maxQuan);
+
+        // Ensure minQuan < maxQuan
+        if (minQuan > maxQuan) {
+            throw new IllegalArgumentException("minQuan should not be greater than maxQuan");
+        }
+
+        // Get a random size within the specified range
+        int randomSize = RandomSampleProvider.getRandomIntInRange(minQuan, maxSize);
+
+        // Select random seats based on the determined size
+        List<T> samples = RandomSampleProvider.getRandomSamplesFromList(originalList, randomSize);
+
+        return samples;
+    }
 
     /**
      * Get a single random item from the original list.
@@ -54,7 +80,7 @@ public class PickRandomHelper {
      * @return A single random item
      */
     public static <T> T getRandomSampleFromList(List<T> originalList) {
-       return getRandomSamplesFromList(originalList, 1).get(0);
+        return getRandomSamplesFromList(originalList, 1).get(0);
     }
 
     /**

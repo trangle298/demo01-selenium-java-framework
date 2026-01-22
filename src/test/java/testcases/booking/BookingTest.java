@@ -1,8 +1,9 @@
 package testcases.booking;
 
 import base.BaseTest;
-import helpers.utils.PickRandomHelper;
+import helpers.actions.BookingActionHelper;
 import helpers.verifications.BookingVerificationHelper;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 import pages.LoginPage;
@@ -15,23 +16,29 @@ import static helpers.actions.BookingActionHelper.*;
 
 public class BookingTest extends BaseTest {
 
-    BookingPage bookingPage;
+    private BookingPage bookingPage;
+    private SoftAssert softAssert;
+
+    @BeforeMethod
+    public void setUpMethod() {
+        bookingPage = new BookingPage(getDriver());
+        softAssert = new SoftAssert();
+    }
 
     @Test(groups = {"integration", "booking", "smoke", "critical"})
     public void testValidBookingLoggedinUser() throws Exception {
-        SoftAssert softAssert = new SoftAssert();
-        LoginPage loginPage = new LoginPage(getDriver());
-        bookingPage = new BookingPage(getDriver());
-
+        // Login
         ExtentReportManager.info("Login as test user for booking test");
+        LoginPage loginPage = new LoginPage(getDriver());
         loginAsBookingUser(loginPage);
 
+        // Navigate to showtime with available seats and book seats
         ExtentReportManager.info("Navigate to sample showtime page");
-        navigateToAvailableShowtimePage(bookingPage);
+        navigateToSampleShowtimePageWithAvailability(bookingPage);
 
+        // Select seats and confirm booking - return list of selected seat numbers for verification
         ExtentReportManager.info("Select sample available seats and confirm booking");
-        List<String> seatsToBook = selectSampleSeats(bookingPage);  // Default to 2 seats if not specified
-        bookingPage.clickBookTicketsButton();
+        List<String> seatsToBook = BookingActionHelper.selectSampleSeatsAndBook(bookingPage);
 
         // Verify booking success - success alert displayed with correct message, seats no longer available after refresh
         ExtentReportManager.info("Verify booking success");
@@ -42,41 +49,37 @@ public class BookingTest extends BaseTest {
 
     @Test(groups = {"component", "booking", "negative"})
     public void testInvalidBooking_NoSeatSelected() throws Exception {
-        LoginPage loginPage = new LoginPage(getDriver());
-        bookingPage = new BookingPage(getDriver());
-
+        // Login
         ExtentReportManager.info("Login as test user for booking test");
+        LoginPage loginPage = new LoginPage(getDriver());
         loginAsBookingUser(loginPage);
 
+        // Navigate to showtime with available seats and attempt booking without selecting seats
         ExtentReportManager.info("Navigate to sample showtime page");
-        navigateToAvailableShowtimePage(bookingPage);
+        navigateToSampleShowtimePageWithAvailability(bookingPage);
 
         ExtentReportManager.info("Attempt to book without selecting any seats");
         bookingPage.clickBookTicketsButton();
 
+        // Verify booking failure due to no seat selection - error alert displayed with correct message
         ExtentReportManager.info("Verify booking failure due to no seat selection");
-        BookingVerificationHelper.verifyNoSeatSelectedError(bookingPage);
+        BookingVerificationHelper.verifyNoSeatSelectedDialog(bookingPage, getDriver(), softAssert);
     }
 
     @Test(groups = {"component", "booking", "negative"})
-    public void testUnauthenticatedBooking() throws Exception {
-        SoftAssert softAssert = new SoftAssert();
-        bookingPage = new BookingPage(getDriver());
-
+    public void testInvalidBooking_Unauthenticated() throws Exception {
+        // Navigate to showtime with available seats without logging in
         ExtentReportManager.info("Navigate to sample showtime page without logging in");
-        navigateToAvailableShowtimePage(bookingPage);
+        navigateToSampleShowtimePageWithAvailability(bookingPage);
 
+        // Select seats and attempt booking - return list of selected seat numbers for verification
         ExtentReportManager.info("Select sample available seats and confirm booking");
-        List<String> availableSeats = bookingPage.getAvailableSeatNumbers();
-        List<String> seatsToBook = PickRandomHelper.getRandomSamplesFromList(availableSeats, 2);
+        List<String> seatsToBook = BookingActionHelper.selectSampleSeatsAndBook(bookingPage);
 
-        bookingPage.selectAvailableSeats(seatsToBook);
-        bookingPage.clickBookTicketsButton();
-
+        // Verify booking blocked for guest user - login required alert displayed with correct message, seats remain available after refresh
         ExtentReportManager.info("Verify booking is blocked for guest user");
         BookingVerificationHelper.verifyBookingBlockedForGuest(bookingPage, seatsToBook, getDriver(), softAssert);
 
         softAssert.assertAll();
     }
-
 }

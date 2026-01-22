@@ -1,13 +1,13 @@
 package helpers.verifications;
 
-import helpers.utils.MessagesUI;
+import helpers.providers.MessagesProvider;
 import org.openqa.selenium.WebDriver;
 import org.testng.asserts.SoftAssert;
 import pages.CommonPage;
 import pages.LoginPage;
 import pages.RegisterPage;
 
-import static helpers.utils.SoftAssertionHelper.*;
+import static helpers.verifications.SoftAssertionHelper.*;
 
 /**
  * Helper class for common authentication-related verifications.
@@ -27,11 +27,11 @@ public class AuthVerificationHelper {
      * Verify registration success message is displayed and has correct text.
      */
     public static void verifyRegisterSuccessMsg(RegisterPage registerPage, WebDriver driver, SoftAssert softAssert) {
-        boolean isAlertDisplayed = registerPage.isRegisterSuccessAlertDisplayed();
+        boolean isAlertDisplayed = registerPage.isRegisterSuccessDialogDisplayed();
         verifySoftTrue(isAlertDisplayed, "Register success message is displayed", driver, softAssert);
 
         if (isAlertDisplayed) {
-            String expectedMessage = MessagesUI.getRegisterSuccessMessage();
+            String expectedMessage = MessagesProvider.getRegisterSuccessMessage();
             String actualMessage = registerPage.getRegisterSuccessMsgText();
             verifySoftEquals(actualMessage, expectedMessage,
                     "Register success message text",
@@ -45,13 +45,13 @@ public class AuthVerificationHelper {
      */
     public static void verifyLoginSuccess(LoginPage loginPage, WebDriver driver, SoftAssert softAssert) {
         // Verify login success message displayed
-        boolean isSuccessAlertDisplayed = loginPage.isLoginSuccessAlertDisplayed();
+        boolean isSuccessAlertDisplayed = loginPage.isLoginSuccessDialogDisplayed();
         verifySoftTrue(isSuccessAlertDisplayed,
                 "Login success alert is displayed", driver, softAssert);
 
         // Verify success message text (only if alert is displayed)
         if (isSuccessAlertDisplayed) {
-            String expectedMsg = MessagesUI.getLoginSuccessMessage();
+            String expectedMsg = MessagesProvider.getLoginSuccessMessage();
             String actualMsg = loginPage.getLoginSuccessMsgText();
             verifySoftEquals(actualMsg, expectedMsg,
                     "Login success message text", driver, softAssert);

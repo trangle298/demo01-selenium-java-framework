@@ -1,8 +1,8 @@
 package testcases.browsing;
 
 import base.BaseTest;
-import helpers.providers.BookingSamplesProvider;
-import helpers.utils.MessagesUI;
+import helpers.providers.ShowtimeSampleProvider;
+import helpers.providers.MessagesProvider;
 import model.ui.MovieDropdownFields;
 import model.api.response.ShowtimeBooking;
 import org.testng.Assert;
@@ -31,7 +31,7 @@ public class MovieDropdownsFilterTest extends BaseTest {
 
         ExtentReportManager.info("Get sample showtime filter options for testing");
 
-        ShowtimeBooking showtimeWithSeats = BookingSamplesProvider.getShowtimeWithAvailableSeats(5, 1).get(0);
+        ShowtimeBooking showtimeWithSeats = ShowtimeSampleProvider.getShowtimeWithAvailableSeats(5, 1).get(0);
 
         String movieOption = showtimeWithSeats.getMovieName();
         String cinemaOption = showtimeWithSeats.getCinemaBranchName();
@@ -39,7 +39,7 @@ public class MovieDropdownsFilterTest extends BaseTest {
 
         ExtentReportManager.info("Apply showtime filters: Movie='" + movieOption + "', Cinema='" + cinemaOption + "'" +
                 ", Showtime ID='" + showtimeOption + "'");
-        homePage.showtimeFilterDropdowns.applyFiltersAndFindTickets(
+        homePage.showtimeFilterDropdowns.selectAllFiltersAndConfirm(
                 movieOption,
                 cinemaOption,
                 showtimeOption
@@ -58,16 +58,16 @@ public class MovieDropdownsFilterTest extends BaseTest {
         MovieDropdownFields showtimeFilter = MovieDropdownFields.SHOWTIME;
 
         return new Object[][]{
-                {movieFilter, MessagesUI.getMissingFilterError(movieFilter)}, // Missing Movie
-                {cinemaFilter, MessagesUI.getMissingFilterError(cinemaFilter)}, // Missing Cinema
-                {showtimeFilter, MessagesUI.getMissingFilterError(showtimeFilter)}, // Missing Showtime
+                {movieFilter, MessagesProvider.getMissingFilterError(movieFilter)}, // Missing Movie
+                {cinemaFilter, MessagesProvider.getMissingFilterError(cinemaFilter)}, // Missing Cinema
+                {showtimeFilter, MessagesProvider.getMissingFilterError(showtimeFilter)}, // Missing Showtime
         };
     }
     @Test(dataProvider = "missingFilterScenarios", groups = {"component", "browsing", "dropdowns", "negative"})
     public void testMissingFilterTriggersAlert(MovieDropdownFields missingFilter, String expectedAlertText) throws Exception {
 
         ExtentReportManager.info("Get sample showtime filter options for testing");
-        ShowtimeBooking randomShowtime = BookingSamplesProvider.getRandomShowtime();
+        ShowtimeBooking randomShowtime = ShowtimeSampleProvider.getRandomShowtime();
 
         String movie = randomShowtime.getMovieName();
         String cinema = randomShowtime.getCinemaBranchName();

@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * Page component for chained showtime filter dropdowns on home page.
  * Handles movie, cinema, and showtime selection with dynamic options.
+ * NOTE: Can extract to a generic chained dropdowns component if needed (current website only has this one instance).
  */
 public class ChainedDropdownsHome extends BasePage {
 
@@ -35,16 +36,11 @@ public class ChainedDropdownsHome extends BasePage {
     @FindBy(xpath = "//div[@id='homeTool']//button")
     private WebElement btnFindTickets;
 
-    // ---- Alerts ----
-    @FindBy(css = "div[role='dialog']")
-    private WebElement alertMissingFilter;
-    @FindBy (xpath = "//div[@role='dialog']//h2")
-    private WebElement lblMissingFilterAlertText;
-    @FindBy(xpath = "//div[@role='dialog']//button[text()='Đã hiểu']")
-    private WebElement btnCloseAlert;
+    // ---- Components ----
+    private PopupDialog dlgMissingFilter;
 
     // ---- Static Fields & Initialization ----
-    // Map for FilterType to HTML Select Name Mapping
+    // Map for FilterType to HTML Select Name
     private Map<MovieDropdownFields, String> filterSelectNameMap;
 
     /**
@@ -66,6 +62,7 @@ public class ChainedDropdownsHome extends BasePage {
         super(driver);
         PageFactory.initElements(driver, this);
         initializeFilterSelectNameMap();
+        this.dlgMissingFilter = new PopupDialog(driver);
     }
 
     // ============================================
@@ -83,8 +80,9 @@ public class ChainedDropdownsHome extends BasePage {
         waitForNestedElementToBePresent(selMovie, movieOption);
     }
 
-    // ---- Interaction Methods ----
-    public void clickFindTickets() {
+    // ---- Actions ----
+    // Interactions with dropdowns and buttons
+    public void clickApplyFilterBtn() {
         LOG.info("Click Find Tickets button");
         click(btnFindTickets);
     }
@@ -101,22 +99,45 @@ public class ChainedDropdownsHome extends BasePage {
         selectDropdownOptionByValue(selShowtime, showtimeId);
     }
 
-    public void applyFiltersAndFindTickets(String movieTitle, String cinemaLocation, String showtimeId) {
+    public void selectAllFiltersAndConfirm(String movieTitle, String cinemaLocation, String showtimeId) {
         LOG.info("Apply filters: movie = " + movieTitle + ", " +
                 "cinema = " +cinemaLocation + ", showtime = " + showtimeId + "and click find tickets");
         selectMovieByMovieTitle(movieTitle);
         selectCinemaBranchByName(cinemaLocation);
         selectShowtimeById(showtimeId);
-        clickFindTickets();
+        clickApplyFilterBtn();
+    }
+
+    // Flows of actions to trigger specific missing filter alert
+    /**
+     * Trigger missing filter alert by selecting filters before the specified missing one.
+     * Uses ordinal-based logic: movie (0) &lt; cinema (1) &lt; showtime (2).
+     *
+     * @param missingFilter The filter that should be missing (not selected)
+     * @param movieTitle Movie title to select (if needed)
+     * @param cinemaLocation Cinema location to select (if needed)
+     */
+    public void triggerMissingFilterAlert(MovieDropdownFields missingFilter, String movieTitle, String cinemaLocation) {
+        switch (missingFilter) {
+            case MOVIE:
+                clickApplyFilterBtn();
+                break;
+            case CINEMA:
+                selectMovieByMovieTitle(movieTitle);
+                clickApplyFilterBtn();
+                break;
+            case SHOWTIME:
+                selectMovieByMovieTitle(movieTitle);
+                selectCinemaBranchByName(cinemaLocation);
+                clickApplyFilterBtn();
+                break;
+            default:
+                LOG.warn("Unknown missing filter: " + missingFilter);
+        }
     }
 
     // ---- Getters ----
-//    public List<String> getMovieOptionsText() {
-//        By bySelMovie = getSelectLocator(FilterType.movie);
-//        By byOptionMovie = getOptionLocator(FilterType.movie);
-//        return getAllOptionsText(bySelMovie, byOptionMovie);
-//    }
-
+    // Get mapping of option IDs to titles/names/datetimes for each dropdown
     public Map<String, String> getMovieOptionIdToTitleMap() {
         Map<String, String> movieTitlesWithIds = new HashMap<>();
         By bySelMovie = getSelectLocator(MovieDropdownFields.MOVIE);
@@ -179,66 +200,13 @@ public class ChainedDropdownsHome extends BasePage {
         return showtimeDatetimesWithIds;
     }
 
-
-
-//    public List<String> getCinemaLocationOptionsText() {
-//        By bySelCinema = getSelectLocator(FilterType.cinema);
-//        By byOptionCinema = getOptionLocator(FilterType.cinema);
-//        return getAllOptionsText(bySelCinema, byOptionCinema);
-//    }
-//
-//    public List<String> getShowtimeOptionsText() {
-//        By bySelShowtime = getSelectLocator(FilterType.showtime);
-//        By byOptionShowtime = getOptionLocator(FilterType.showtime);
-//        return getAllOptionsText(bySelShowtime, byOptionShowtime);
-//    }
-
-    // ---- Missing Filter Alerts Methods ----
-    public void triggerMissingMovieFilterAlert() {
-        clickFindTickets();
-    }
-
-    public void triggerMissingCinemaLocationFilterAlert(String movieTitle) {
-        selectMovieByMovieTitle(movieTitle);
-        clickFindTickets();
-    }
-
-    public void triggerMissingShowtimeFilterAlert(String movieTitle, String cinemaLocation) {
-        selectMovieByMovieTitle(movieTitle);
-        selectCinemaBranchByName(cinemaLocation);
-        clickFindTickets();
-    }
-
-    /**
-     * Trigger missing filter alert by selecting filters before the specified missing one.
-     * Uses ordinal-based logic: movie (0) &lt; cinema (1) &lt; showtime (2).
-     *
-     * @param missingFilter The filter that should be missing (not selected)
-     * @param movieTitle Movie title to select (if needed)
-     * @param cinemaLocation Cinema location to select (if needed)
-     */
-    public void triggerMissingFilterAlert(MovieDropdownFields missingFilter, String movieTitle, String cinemaLocation) {
-        switch (missingFilter) {
-            case MOVIE:
-                triggerMissingMovieFilterAlert();
-                break;
-            case CINEMA:
-                triggerMissingCinemaLocationFilterAlert(movieTitle);
-                break;
-            case SHOWTIME:
-                triggerMissingShowtimeFilterAlert(movieTitle, cinemaLocation);
-                break;
-            default:
-                LOG.warn("Unknown missing filter: " + missingFilter);
-        }
-    }
-
+    // Get missing filter alert state and text
     public boolean isMissingFilterAlertVisible() {
-        return isElementDisplayedShort(alertMissingFilter);
+        return dlgMissingFilter.isDialogDisplayed();
     }
 
     public String getMissingFilterAlertText() {
-        return getText(lblMissingFilterAlertText);
+        return dlgMissingFilter.getDialogTitle();
     }
 
     // ============================================

@@ -3,7 +3,7 @@ package testcases.account;
 import base.BaseTest;
 import helpers.verifications.AccountVerificationHelper;
 import helpers.providers.AuthTestDataGenerator;
-import helpers.utils.MessagesUI;
+import helpers.providers.MessagesProvider;
 import helpers.providers.TestUserProvider;
 import model.TestUserType;
 import model.ui.LoginInputs;
@@ -14,7 +14,7 @@ import pages.AccountPage;
 import pages.LoginPage;
 import reports.ExtentReportManager;
 
-import static helpers.utils.SoftAssertionHelper.*;
+import static helpers.verifications.SoftAssertionHelper.*;
 
 public class AccountUpdateTest extends BaseTest {
 
@@ -37,7 +37,7 @@ public class AccountUpdateTest extends BaseTest {
         ExtentReportManager.info("Log in and navigate to Account page before test");
         userCredentials = TestUserProvider.getUserCredentials(TestUserType.USER_ACCOUNT_UPDATE);
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(userCredentials);
+        loginPage.fillLoginFormThenSubmit(userCredentials);
         loginPage.topBarNavigation.waitForUserProfileLink();
 
         // navigate to account page and capture current values for revert
@@ -52,7 +52,7 @@ public class AccountUpdateTest extends BaseTest {
     }
 
     @Test(groups = {"integration", "auth", "account", "smoke"})
-    public void testValidUpdate_UserProfile() {
+    public void testValidUpdate_PersonalInfo() {
         ExtentReportManager.info("Update user profile: new name, email, phone on Account Page");
         // Generate new valid data
         String newName = AuthTestDataGenerator.generateNewName(originalName);
@@ -60,11 +60,11 @@ public class AccountUpdateTest extends BaseTest {
         String newPhone = AuthTestDataGenerator.generateNewPhoneNumber(originalPhone);
         // Update account info
         accountPage.changeAccountInfo(newName, newEmail, newPhone);
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
         // Verify update success
         ExtentReportManager.info("Verify user profile info update success");
-        AccountVerificationHelper.verifyAccountFieldsUpdateSuccess(accountPage, newName, newEmail, newPhone, getDriver(), softAssert);
+        AccountVerificationHelper.verifyPersonalInfoUpdateSuccess(accountPage, newName, newEmail, newPhone, getDriver(), softAssert);
 
         softAssert.assertAll();
 
@@ -81,7 +81,7 @@ public class AccountUpdateTest extends BaseTest {
 
         // Update password
         accountPage.changePassword(newPassword);
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
         // Verify update success
         ExtentReportManager.info("Verify password update success");
@@ -99,7 +99,7 @@ public class AccountUpdateTest extends BaseTest {
         ExtentReportManager.info("Attempt to update account with blank email");
         // Set email to blank and save
         accountPage.changeEmail("");
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
         // Verify update failure due to validation
         ExtentReportManager.info("Verify update failed due to blank field validation");
@@ -116,7 +116,7 @@ public class AccountUpdateTest extends BaseTest {
 
         // Set invalid name and save
         accountPage.changeName(invalidName);
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
         // Verify update failure due to validation
         ExtentReportManager.info("Verify update failed due to invalid input validation");
@@ -133,7 +133,7 @@ public class AccountUpdateTest extends BaseTest {
 
         // Set short password and save
         accountPage.changePassword(shortPassword);
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
         // Verify update failure due to validation
         ExtentReportManager.info("Verify update failed due to short password validation");
@@ -150,7 +150,7 @@ public class AccountUpdateTest extends BaseTest {
 
         // Attempt to change username and save
         accountPage.changeUsername(newUsername);
-        accountPage.saveChanges();
+        accountPage.clickSaveBtn();
 
         // Verify username remains unchanged
         ExtentReportManager.info("Verify username remains unchanged after update attempt");
@@ -161,15 +161,15 @@ public class AccountUpdateTest extends BaseTest {
 
     // ---- Helper methods for verification ----
     private void verifyUpdateFailureWithBlankEmail(SoftAssert softAssert) {
-        verifySoftFalse(accountPage.isUpdateAlertDisplayed(),
+        verifySoftFalse(accountPage.isUpdateResponseDialogDisplayed(),
                 "No update alert displayed for failed update with blank email", getDriver(), softAssert);
 
-        boolean emailErrorDisplayed = verifySoftTrue(accountPage.isEmailValidationErrorDisplayed(),
+        boolean emailErrorDisplayed = verifySoftTrue(accountPage.isEmailValidationMsgDisplayed(),
                 "Email validation error is displayed for blank email", getDriver(), softAssert);
 
         if (emailErrorDisplayed) {
-            String expectedErrorMsg = MessagesUI.getRequiredFieldError();
-            verifySoftEquals(expectedErrorMsg, accountPage.getEmailValidationErrorText(),
+            String expectedErrorMsg = MessagesProvider.getRequiredFieldError();
+            verifySoftEquals(expectedErrorMsg, accountPage.getEmailValidationMsgText(),
                     "Email validation error message text", getDriver(), softAssert);
         }
 
@@ -181,15 +181,15 @@ public class AccountUpdateTest extends BaseTest {
     }
 
     private void verifyUpdateFailureWithInvalidName(SoftAssert softAssert) {
-        verifySoftFalse(accountPage.isUpdateAlertDisplayed(),
+        verifySoftFalse(accountPage.isUpdateResponseDialogDisplayed(),
                 "No update alert displayed for failed update with invalid name", getDriver(), softAssert);
 
-        boolean nameErrorDisplayed = verifySoftTrue(accountPage.isNameValidationErrorDisplayed(),
+        boolean nameErrorDisplayed = verifySoftTrue(accountPage.isNameValidationMsgDisplayed(),
                 "Name validation error is displayed for invalid name", getDriver(), softAssert);
 
         if (nameErrorDisplayed) {
-            String expectedErrorMsg = MessagesUI.getNameContainsNumberError();
-            verifySoftEquals(expectedErrorMsg, accountPage.getNameValidationErrorText(),
+            String expectedErrorMsg = MessagesProvider.getNameContainsNumberError();
+            verifySoftEquals(expectedErrorMsg, accountPage.getNameValidationMsgText(),
                     "Name validation error message text", getDriver(), softAssert);
         }
 
@@ -199,15 +199,15 @@ public class AccountUpdateTest extends BaseTest {
     }
 
     private void verifyUpdateFailureWithShortPassword(SoftAssert softAssert) {
-        verifySoftFalse(accountPage.isUpdateAlertDisplayed(),
+        verifySoftFalse(accountPage.isUpdateResponseDialogDisplayed(),
                 "No update alert displayed for failed update with invalid password", getDriver(), softAssert);
 
-        boolean passwordErrorDisplayed = verifySoftTrue(accountPage.isPasswordValidationErrorDisplayed(),
+        boolean passwordErrorDisplayed = verifySoftTrue(accountPage.isPasswordValidationMsgDisplayed(),
                 "Password validation error is displayed for short password", getDriver(), softAssert);
 
         if (passwordErrorDisplayed) {
-            String expectedErrorMsg = MessagesUI.getPasswordMinLengthError();
-            verifySoftEquals(expectedErrorMsg, accountPage.getPasswordValidationErrorText(),
+            String expectedErrorMsg = MessagesProvider.getPasswordMinLengthError();
+            verifySoftEquals(expectedErrorMsg, accountPage.getPasswordValidationMsgText(),
                     "Password validation error message text", getDriver(), softAssert);
         }
         accountPage.refreshPage();
@@ -224,7 +224,7 @@ public class AccountUpdateTest extends BaseTest {
         accountPage.topBarNavigation.logout();
         LoginPage loginPage = new LoginPage(getDriver());
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(newUsername, originalPassword);
+        loginPage.fillLoginFormThenSubmit(newUsername, originalPassword);
 
         verifySoftTrue(loginPage.isLoginErrorAlertDisplayed(),
                 "Login error displayed for attempted new username", getDriver(), softAssert);
@@ -233,7 +233,7 @@ public class AccountUpdateTest extends BaseTest {
                 "Login failed with attempted new username", getDriver(), softAssert);
 
         loginPage.refreshPage();
-        loginPage.fillLoginFormAndSubmit(originalUsername, originalPassword);
+        loginPage.fillLoginFormThenSubmit(originalUsername, originalPassword);
 
         verifySoftTrue(loginPage.topBarNavigation.isUserProfileVisible(),
                 "Login successful with original username", getDriver(), softAssert);
@@ -254,15 +254,13 @@ public class AccountUpdateTest extends BaseTest {
             ExtentReportManager.fail("Original phone number is empty. Keeping updated phone number.");
         } else accountPage.changePhoneNumber(originalPhone);
 
-        accountPage.saveChanges();
-        accountPage.waitForUpdateAlert();
+        accountPage.saveChangesAndWaitForSuccessDialog();
     }
 
     private void revertPasswordChange(String originalPassword) {
         accountPage.navigateToAccountPage();
         accountPage.changePassword(originalPassword);
 
-        accountPage.saveChanges();
-        accountPage.waitForUpdateAlert();
+        accountPage.saveChangesAndWaitForSuccessDialog();
     }
 }

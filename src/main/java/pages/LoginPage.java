@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import pages.components.PopupDialog;
 
 /**
  * Page Object for Login page.
@@ -32,12 +33,11 @@ public class LoginPage extends CommonPage {
     private WebElement lblInvalidPasswordMsg;
     
     // ---- Form alerts ----
-    @FindBy (css = "div[role='dialog']")
-    private WebElement alertLoginSuccess;
-    @FindBy (xpath = "//div[@role='dialog']//h2")
-    private WebElement lblLoginSuccessMsg;
     @FindBy (css = "div[role='alert']")
     private WebElement alertLoginError;
+
+    // ---- Components ----
+    private PopupDialog dlgSuccess;
 
     // ============================================
     // ---- Constructor ----
@@ -45,6 +45,7 @@ public class LoginPage extends CommonPage {
     public LoginPage(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
+        this.dlgSuccess = new PopupDialog(driver);
     }
 
     // ============================================
@@ -70,19 +71,28 @@ public class LoginPage extends CommonPage {
         click(btnLogin);
     }
 
-    public void fillLoginFormAndSubmit(String account, String password) {
+    public void fillLoginFormThenSubmit(String account, String password) {
         LOG.info("Fill login form and submit");
         enterAccount(account);
         enterPassword(password);
         clickLoginButton();
     }
 
-    public void fillLoginFormAndSubmit(LoginInputs loginInputs) {
-        fillLoginFormAndSubmit(loginInputs.getTaiKhoan(), loginInputs.getMatKhau());
+    public void fillLoginFormThenSubmit(LoginInputs loginInputs) {
+        fillLoginFormThenSubmit(loginInputs.getTaiKhoan(), loginInputs.getMatKhau());
     }
 
-    
-    // ---- Messages and alerts ----
+    // ---- Getters ----
+    // Get success dialog state and text
+    public boolean isLoginSuccessDialogDisplayed() {
+        return dlgSuccess.isDialogDisplayed();
+    }
+
+    public String getLoginSuccessMsgText() {
+        return dlgSuccess.getDialogTitle();
+    }
+
+    // Get validation error state and text
     public boolean isInvalidPasswordMsgDisplayed() {
         return isElementDisplayedShort(lblInvalidPasswordMsg);
     }
@@ -91,14 +101,7 @@ public class LoginPage extends CommonPage {
         return getText(lblInvalidPasswordMsg);
     }
 
-    public boolean isLoginSuccessAlertDisplayed() {
-        return isElementDisplayed(alertLoginSuccess);
-    }
-
-    public String getLoginSuccessMsgText() {
-        return getText(lblLoginSuccessMsg);
-    }
-
+    // Get login error alert state and text
     public boolean isLoginErrorAlertDisplayed() {
         return isElementDisplayedShort(alertLoginError);
     }
@@ -106,6 +109,4 @@ public class LoginPage extends CommonPage {
     public String getLoginErrorMsgText() {
         return getText(alertLoginError);
     }
-
 }
-

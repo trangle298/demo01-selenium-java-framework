@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import pages.components.PopupDialog;
 
 import java.util.List;
 
@@ -28,11 +29,9 @@ public class BookingPage extends CommonPage {
     @FindBy(xpath = "//button[contains(., 'ĐẶT VÉ')]")
     private WebElement btnBookTickets;
 
-    @FindBy(css = "div[role='dialog'] h2")
-    private WebElement alertBooking;
-
-    @FindBy (css = "div[role='dialog'] button[class*='confirm']")
-    private WebElement btnAlertConfirm;
+    // ---- Components ----
+    // Popup dialog for booking response - success, empty selection error, unauthenticated error
+    private PopupDialog dlgResponse;
 
     // ============================================
     // Constructor
@@ -40,6 +39,7 @@ public class BookingPage extends CommonPage {
     public BookingPage(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
+        this.dlgResponse = new PopupDialog(driver);
     }
 
     public void navigateToShowtimePage(String showtimeId) {
@@ -63,7 +63,7 @@ public class BookingPage extends CommonPage {
     }
 
     // ---- Actions ----
-    public void selectAvailableSeat(String seatNumber) {
+    public void selectSeatBySeatNumber(String seatNumber) {
         LOG.info("Select Seat Number: " + seatNumber);
         By seatLocator = By.xpath(String.format("//button[.='%s']", seatNumber));
         WebElement seatElement = waitForVisibilityOfElementLocatedBy(seatLocator);
@@ -75,9 +75,9 @@ public class BookingPage extends CommonPage {
         waitForVisibilityOfElementLocatedBy(selectedSeatLocator);
     }
 
-    public void selectAvailableSeats(List<String> seatNumbers) {
+    public void selectSeatsBySeatNumbers(List<String> seatNumbers) {
         for (String seatNumber : seatNumbers) {
-            selectAvailableSeat(seatNumber);
+            selectSeatBySeatNumber(seatNumber);
         }
     }
 
@@ -86,12 +86,18 @@ public class BookingPage extends CommonPage {
         click(btnBookTickets);
     }
 
-    public void clickAlertConfirmButton() {
-        waitForVisibilityOfElementLocated(btnAlertConfirm);
-        click(btnAlertConfirm);
+    public void confirmAndCloseDialog() {
+        dlgResponse.clickConfirmButton();
+        dlgResponse.waitForDialogToBeInvisible();
+    }
+
+    public void denyAndCloseDialog() {
+        dlgResponse.clickDenyButton();
+        dlgResponse.waitForDialogToBeInvisible();
     }
 
     // ---- Getters ----
+    // Get list of available seat numbers
     public List<String> getAvailableSeatNumbers() {
         LOG.info("Get Available Seat Numbers");
         waitForSeatMapToLoad();
@@ -100,14 +106,9 @@ public class BookingPage extends CommonPage {
                 .toList();
     }
 
-    /**
-     * Check if a specific seat is available (exists and is clickable).
-     * Uses default wait timeout since seats load with the page.
-     *
-     * @param seatNumber The seat number to check (e.g., "A1", "B5")
-     * @return true if seat exists and is available, false otherwise
-     */
+    // Check single seat availability (button with seat number is present and visible)
     public boolean isSeatAvailable(String seatNumber) {
+        waitForSeatMapToLoad();
         try {
             By seatLocator = By.xpath(String.format("//button[.='%s']", seatNumber));
             WebElement seatElement = waitForVisibilityOfElementLocatedBy(seatLocator);
@@ -117,21 +118,17 @@ public class BookingPage extends CommonPage {
         }
     }
 
-    /**
-     * Check if multiple seats are all available.
-     *
-     * @param seatNumbers List of seat numbers to check
-     * @return true if all seats are available, false if any seat is unavailable
-     */
+    // Check multiple seats availability
     public boolean areSeatsAvailable(List<String> seatNumbers) {
         return seatNumbers.stream().allMatch(this::isSeatAvailable);
     }
 
-    public boolean isBookingAlertDisplayed() {
-        return isElementDisplayed(alertBooking);
+    // Get booking dialog state and text
+    public boolean isBookingDialogDisplayed() {
+        return dlgResponse.isDialogDisplayed();
     }
 
-    public String getBookingAlertText() {
-        return getText(alertBooking);
+    public String getBookingDialogHeader() {
+        return dlgResponse.getDialogTitle();
     }
 }

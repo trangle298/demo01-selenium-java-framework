@@ -6,7 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import reports.ExtentReportManager;
+import pages.components.PopupDialog;
 
 /**
  * Page Object for Account management page.
@@ -18,9 +18,9 @@ public class AccountPage extends CommonPage {
     // ---- Page Elements ----
     // ============================================
 
-    // ---- Main form ----
+    // ---- Form container ----
     @FindBy (css = "form")
-    private WebElement formAccount;
+    private WebElement frmContainer;
 
     // ---- Form fields ----
     @FindBy (id = "taiKhoan")
@@ -38,9 +38,7 @@ public class AccountPage extends CommonPage {
     @FindBy (xpath = "//button[.='Cập Nhật']")
     private WebElement btnSaveChanges;
 
-    // ---- Form alerts ----
-    @FindBy (xpath = "//div[@role='dialog']//h2")
-    private WebElement alertFormUpdate;
+    // ---- Form validation messages ----
     @FindBy(id = "hoTen-helper-text")
     private WebElement lblFullNameError;
     @FindBy (id = "email-helper-text")
@@ -48,12 +46,17 @@ public class AccountPage extends CommonPage {
     @FindBy (id = "matKhau-helper-text")
     private WebElement lblPasswordError;
 
+    // ---- Components ----
+    // Popup dialog for update response - success and error
+    private PopupDialog dlgResponse;
+
     // ============================================
     // Constructor
     // ============================================
     public AccountPage(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
+        this.dlgResponse = new PopupDialog(driver);
     }
 
     // ============================================
@@ -67,17 +70,9 @@ public class AccountPage extends CommonPage {
     }
 
     // ---- Waits ----
-    public void waitForAccountForm(){
+    public void waitForAccountFormToAppear(){
         LOG.info("Wait for Account form to be visible");
-        waitForVisibilityOfElementLocated(formAccount);
-    }
-
-    public void waitForUpdateAlert(){
-        waitForVisibilityOfElementLocated(alertFormUpdate);
-    }
-
-    public void waitForUpdateAlertToDisappear() {
-        waitForInvisibilityOfElementLocated(alertFormUpdate);
+        waitForVisibilityOfElementLocated(frmContainer);
     }
 
     // ---- Form interactions: fill/update fields, click buttons ----
@@ -112,8 +107,18 @@ public class AccountPage extends CommonPage {
         enterText(txtUsername, newUsername);
     }
 
-    public void saveChanges() {
+    public void clickSaveBtn() {
         click(btnSaveChanges);
+    }
+
+    public void saveChangesAndWaitForSuccessDialog() {
+        clickSaveBtn();
+        dlgResponse.waitForDialogToBeVisible();
+    }
+
+    public void closeSuccessDialog() {
+        dlgResponse.clickConfirmButton();
+        dlgResponse.waitForDialogToBeInvisible();
     }
 
     // ---- Getters ----
@@ -154,36 +159,37 @@ public class AccountPage extends CommonPage {
                 .build();
     }
 
-    // Get alerts and validation errors visibility and text
-    public boolean isUpdateAlertDisplayed() {
-        return isElementDisplayedShort(alertFormUpdate);
+    // Get dialog state and text
+    public boolean isUpdateResponseDialogDisplayed() {
+        return dlgResponse.isDialogDisplayed();
     }
 
-    public String getUpdateAlertText() {
-        return getText(alertFormUpdate);
+    public String getUpdateResponseMsgText() {
+        return dlgResponse.getDialogTitle();
     }
 
-    public boolean isNameValidationErrorDisplayed() {
+    // Get validation error state and text
+    public boolean isNameValidationMsgDisplayed() {
         return isElementDisplayedShort(lblFullNameError);
     }
 
-    public String getNameValidationErrorText() {
+    public String getNameValidationMsgText() {
         return getText(lblFullNameError);
     }
 
-    public boolean isEmailValidationErrorDisplayed() {
+    public boolean isEmailValidationMsgDisplayed() {
         return isElementDisplayedShort(lblEmailError);
     }
 
-    public String getEmailValidationErrorText() {
+    public String getEmailValidationMsgText() {
         return getText(lblEmailError);
     }
 
-    public boolean isPasswordValidationErrorDisplayed() {
+    public boolean isPasswordValidationMsgDisplayed() {
         return isElementDisplayedShort(lblPasswordError);
     }
 
-    public String getPasswordValidationErrorText() {
+    public String getPasswordValidationMsgText() {
         return getText(lblPasswordError);
     }
 }

@@ -3,7 +3,7 @@ package testcases.e2e;
 import api.services.UserService;
 import base.BaseTest;
 import helpers.actions.BookingActionHelper;
-import helpers.providers.BookingSamplesProvider;
+import helpers.providers.ShowtimeSampleProvider;
 import helpers.verifications.BookingVerificationHelper;
 import model.ui.LoginInputs;
 import model.api.request.RegisterRequest;
@@ -20,7 +20,7 @@ import java.util.List;
 
 import static helpers.providers.AuthTestDataGenerator.generateRegisterRequestPayload;
 import static helpers.verifications.AuthVerificationHelper.verifyLoginSuccess;
-import static helpers.utils.SoftAssertionHelper.verifySoftTrue;
+import static helpers.verifications.SoftAssertionHelper.verifySoftTrue;
 
 /**
  * E2E Test: Complete Booking Flow
@@ -55,7 +55,7 @@ public class CompleteBookingFlowE2ETest extends BaseTest {
         // ============================================
         ExtentReportManager.info("Navigate to login page and log in");
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(loginCredentials);
+        loginPage.fillLoginFormThenSubmit(loginCredentials);
 
 //        loginPage.fillLoginFormAndSubmit(testUser.getUsername(), testUser.getPassword());
         verifyLoginSuccess(loginPage, getDriver(), softAssert);
@@ -74,9 +74,9 @@ public class CompleteBookingFlowE2ETest extends BaseTest {
         // Step 3: Select a movie showtime using filters
         // ============================================
         ExtentReportManager.info("User filter to navigate to a showtime with available seats");
-        ShowtimeBooking showtimeWithSeats = BookingSamplesProvider.getShowtimeWithAvailableSeats(5, 1).get(0);
+        ShowtimeBooking showtimeWithSeats = ShowtimeSampleProvider.getShowtimeWithAvailableSeats(5, 1).get(0);
 
-        homePage.showtimeFilterDropdowns.applyFiltersAndFindTickets(
+        homePage.showtimeFilterDropdowns.selectAllFiltersAndConfirm(
                 showtimeWithSeats.getMovieName(),
                 showtimeWithSeats.getCinemaBranchName(),
                 showtimeWithSeats.getShowtimeId()
@@ -88,10 +88,10 @@ public class CompleteBookingFlowE2ETest extends BaseTest {
         // ============================================
         // Step 4: Select seats and book tickets
         // ============================================
-        ExtentReportManager.info("Select random sample of available seats and book");
-        List<String> seatsToBook = BookingActionHelper.selectAvailableSeatsWithinRange(bookingPage, 2, 5);
-        bookingPage.selectAvailableSeats(seatsToBook);
-        bookingPage.clickBookTicketsButton();
+        // Select random seats with random sample size between 1 and 5 seats if no size or range specified
+        // Returns list of selected seat numbers for verification
+        ExtentReportManager.info("Select sample seats and book");
+        List<String> seatsToBook = BookingActionHelper.selectSampleSeatsAndBook(bookingPage);
 
         // ============================================
         // Step 5: Verify booking success

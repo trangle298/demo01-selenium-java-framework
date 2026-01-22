@@ -11,8 +11,8 @@ import pages.HomePage;
 import pages.LoginPage;
 import reports.ExtentReportManager;
 
-import static helpers.utils.SoftAssertionHelper.verifySoftFalse;
-import static helpers.utils.SoftAssertionHelper.verifySoftTrue;
+import static helpers.verifications.SoftAssertionHelper.verifySoftFalse;
+import static helpers.verifications.SoftAssertionHelper.verifySoftTrue;
 import static helpers.verifications.AuthVerificationHelper.verifyLogoutSuccess;
 
 public class LogoutTest extends BaseTest {
@@ -28,7 +28,7 @@ public class LogoutTest extends BaseTest {
 
         ExtentReportManager.info("Log in and navigate to Homepage before test");
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(testUser.getUsername(), testUser.getPassword());
+        loginPage.fillLoginFormThenSubmit(testUser.getUsername(), testUser.getPassword());
 
         loginPage.topBarNavigation.waitForUserProfileLink();
 

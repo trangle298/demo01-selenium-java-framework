@@ -14,7 +14,7 @@ import reports.ExtentReportManager;
 import java.util.Map;
 import java.util.Set;
 
-import static helpers.utils.SoftAssertionHelper.verifySoftEquals;
+import static helpers.verifications.SoftAssertionHelper.verifySoftEquals;
 
 public class MovieDropdownsDataConsistencyTest extends BaseTest {
 

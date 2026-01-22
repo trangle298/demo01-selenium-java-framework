@@ -1,8 +1,8 @@
 package testcases.auth;
 
 import base.BaseTest;
-import helpers.utils.MessagesUI;
-import helpers.utils.SoftAssertionHelper;
+import helpers.providers.MessagesProvider;
+import helpers.verifications.SoftAssertionHelper;
 import helpers.providers.TestUserProvider;
 import model.ui.RegisterInputs;
 import model.TestUser;
@@ -19,10 +19,12 @@ public class RegisterTest extends BaseTest {
 
     private RegisterPage registerPage;
     private RegisterInputs formInputs;
+    private SoftAssert softAssert;
 
     @BeforeMethod(alwaysRun = true)
     public void setUpMethod() {
         registerPage = new RegisterPage(getDriver());
+        softAssert = new SoftAssert();
 
         // Generate valid form inputs as base for use in tests
         formInputs = generateValidRegisterFormInputs();
@@ -33,8 +35,6 @@ public class RegisterTest extends BaseTest {
 
     @Test(groups = {"component", "auth", "register", "smoke", "critical"})
     public void testValidRegister() {
-        SoftAssert softAssert = new SoftAssert();
-
         ExtentReportManager.info("Submit Register form with valid data");
         // Fill and submit form with valid inputs
         registerPage.fillRegisterFormThenSubmit(formInputs);
@@ -47,8 +47,6 @@ public class RegisterTest extends BaseTest {
 
     @Test(groups = {"component", "auth", "register", "negative"})
     public void testInvalidRegister_BlankField() {
-        SoftAssert softAssert = new SoftAssert();
-
         ExtentReportManager.info("Submit Register form with one blank field: Email");
         // Clear email field to simulate blank input
         formInputs.setEmail("");
@@ -56,16 +54,14 @@ public class RegisterTest extends BaseTest {
         registerPage.fillRegisterFormThenSubmit(formInputs);
 
         ExtentReportManager.info("Verify field validation error");
-        String expectedMsg = MessagesUI.getRequiredFieldError();
-        verifyFieldErrorMsg("email", expectedMsg, softAssert);
+        String expectedMsg = MessagesProvider.getRequiredFieldError();
+        verifyFieldValidationMsg("email", expectedMsg, softAssert);
 
         softAssert.assertAll();
     }
 
     @Test(groups = {"component", "auth", "register", "negative"})
     public void testInvalidRegister_InvalidInput() {
-        SoftAssert softAssert = new SoftAssert();
-
         ExtentReportManager.info("Submit Register form with one blank field: Full Name");
         // Set full name to invalid value containing numbers
         String invalidFullName = generateInvalidNameContainingNumbers();
@@ -74,16 +70,14 @@ public class RegisterTest extends BaseTest {
         registerPage.fillRegisterFormThenSubmit(formInputs);
 
         ExtentReportManager.info("Verify field validation error");
-        String expectedMsg = MessagesUI.getNameContainsNumberError();
-        verifyFieldErrorMsg("fullName", expectedMsg, softAssert);
+        String expectedMsg = MessagesProvider.getNameContainsNumberError();
+        verifyFieldValidationMsg("fullName", expectedMsg, softAssert);
 
         softAssert.assertAll();
     }
 
     @Test(groups = {"component", "auth", "register", "negative"})
     public void testInvalidRegister_MismatchedPasswords() {
-        SoftAssert softAssert = new SoftAssert();
-
         ExtentReportManager.info("Submit Register form with mismatched confirm password");
         // Modify confirm password to not match password
         String mismatchedPassword = generateNewPassword(formInputs.getPassword());
@@ -92,8 +86,8 @@ public class RegisterTest extends BaseTest {
         registerPage.fillRegisterFormThenSubmit(formInputs);
 
         ExtentReportManager.info("Verify field validation error");
-        String expectedMsg = MessagesUI.getPasswordMismatchError();
-        verifyFieldErrorMsg("confirmPassword", expectedMsg, softAssert);
+        String expectedMsg = MessagesProvider.getPasswordMismatchError();
+        verifyFieldValidationMsg("confirmPassword", expectedMsg, softAssert);
 
         softAssert.assertAll();
     }
@@ -101,8 +95,6 @@ public class RegisterTest extends BaseTest {
     // Form Validation Tests (Server-side)
     @Test(groups = {"integration", "auth", "register", "negative", "critical"})
     public void testInvalidRegister_ExistingUsername() {
-        SoftAssert softAssert = new SoftAssert();
-
         ExtentReportManager.info("Submit Register form with existing username");
         RegisterInputs request = generateValidRegisterFormInputs();
         // Get existing username from test user for simplicity - can also get from API if needed
@@ -113,16 +105,14 @@ public class RegisterTest extends BaseTest {
         registerPage.fillRegisterFormThenSubmit(formInputs);
 
         ExtentReportManager.info("Verify form validation error");
-        String expectedMsg = MessagesUI.getRegisterExistingUsernameError();
-        verifyFormErrorAlert(expectedMsg, softAssert);
+        String expectedMsg = MessagesProvider.getRegisterExistingUsernameError();
+        verifyRegisterFormErrorAlert(expectedMsg, softAssert);
 
         softAssert.assertAll();
     }
 
     @Test(groups = {"integration", "auth", "register", "negative", "critical"})
     public void testRegister_ExistingEmail() {
-        SoftAssert softAssert = new SoftAssert();
-
         ExtentReportManager.info("Step 2: Submit Register form with existing email");
         // Get existing email from test user for simplicity - can also get from API if needed
         TestUser existingUser = TestUserProvider.getUser(TestUserType.USER_BASIC);
@@ -132,14 +122,14 @@ public class RegisterTest extends BaseTest {
         registerPage.fillRegisterFormThenSubmit(formInputs);
 
         ExtentReportManager.info("Step 3: Verify form validation error");
-        String expectedMsg = MessagesUI.getRegisterExistingEmailError();
-        verifyFormErrorAlert(expectedMsg, softAssert);
+        String expectedMsg = MessagesProvider.getRegisterExistingEmailError();
+        verifyRegisterFormErrorAlert(expectedMsg, softAssert);
 
         softAssert.assertAll();
     }
 
     // ---- Helper methods for verification ----
-    private void verifyFormErrorAlert(String expectedMsg, SoftAssert softAssert) {
+    private void verifyRegisterFormErrorAlert(String expectedMsg, SoftAssert softAssert) {
         // Verify error alert is displayed
         boolean errorDisplayed = SoftAssertionHelper.verifySoftTrue(registerPage.isRegisterErrorAlertDisplayed(),
                 "Register error alert is displayed", getDriver(), softAssert);
@@ -151,12 +141,12 @@ public class RegisterTest extends BaseTest {
         }
     }
 
-    private void verifyFieldErrorMsg(String fieldName, String expectedMsg, SoftAssert softAssert) {
-        boolean errorDisplayed = registerPage.isFieldValidationErrorDisplayed(fieldName);
+    private void verifyFieldValidationMsg(String fieldName, String expectedMsg, SoftAssert softAssert) {
+        boolean errorDisplayed = registerPage.isFieldValidationMsgDisplayed(fieldName);
         SoftAssertionHelper.verifySoftTrue(errorDisplayed, fieldName + " field error is displayed", getDriver(), softAssert);
 
         if (errorDisplayed) {
-            String actualMsg = registerPage.getFieldErrorText(fieldName);
+            String actualMsg = registerPage.getFieldValidationText(fieldName);
             SoftAssertionHelper.verifySoftEquals(actualMsg, expectedMsg, fieldName + " error message text", getDriver(), softAssert);
         }
     }

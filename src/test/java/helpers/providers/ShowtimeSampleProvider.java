@@ -3,7 +3,6 @@ package helpers.providers;
 import api.services.CinemaService;
 import api.services.MovieService;
 import api.services.BookingService;
-import helpers.utils.PickRandomHelper;
 import model.api.response.Movie;
 import model.api.response.ShowtimeBooking;
 import model.api.response.MovieSchedule;
@@ -16,9 +15,9 @@ import java.util.*;
  * Provides sample showtime(s) - random or filtered based on seat availability.
  * Fetches real data from API and for filtering.
  */
-public class BookingSamplesProvider {
+public class ShowtimeSampleProvider {
 
-    private static final Logger LOG = LogManager.getLogger(BookingSamplesProvider.class);
+    private static final Logger LOG = LogManager.getLogger(ShowtimeSampleProvider.class);
 
     public static ShowtimeBooking getRandomShowtime() throws Exception {
         List<String> allShowtimeIds = getAllMovieShowtimeIds();
@@ -27,7 +26,7 @@ public class BookingSamplesProvider {
             throw new Exception("No showtime IDs found from Movie domain API.");
         }
 
-        String randomShowtimeId = PickRandomHelper.getRandomSampleFromList(allShowtimeIds);
+        String randomShowtimeId = RandomSampleProvider.getRandomSampleFromList(allShowtimeIds);
 
         LOG.info("Selected random showtime ID: " + randomShowtimeId);
         BookingService bookingService = new BookingService();

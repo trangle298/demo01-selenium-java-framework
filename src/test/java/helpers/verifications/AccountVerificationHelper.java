@@ -1,6 +1,6 @@
 package helpers.verifications;
 
-import helpers.utils.MessagesUI;
+import helpers.providers.MessagesProvider;
 import model.UserAccount;
 import model.ui.RegisterInputs;
 import org.openqa.selenium.WebDriver;
@@ -9,9 +9,9 @@ import pages.AccountPage;
 import pages.LoginPage;
 import reports.ExtentReportManager;
 
-import static helpers.utils.SoftAssertionHelper.verifySoftTrue;
+import static helpers.verifications.SoftAssertionHelper.verifySoftTrue;
 import static helpers.verifications.AuthVerificationHelper.verifyLoginSuccess;
-import static helpers.utils.SoftAssertionHelper.verifySoftEquals;
+import static helpers.verifications.SoftAssertionHelper.verifySoftEquals;
 
 /**
  * Helper class for account management verifications.
@@ -25,12 +25,17 @@ public class AccountVerificationHelper {
     /**
      * Verify account update success message is displayed with correct text.
      */
-    public static void verifyAccountUpdateSuccessMsg(AccountPage accountPage, WebDriver driver, SoftAssert softAssert) {
-        String expectedMsg = MessagesUI.getAccountUpdateSuccessMessage();
-        String actualMsg = accountPage.getUpdateAlertText();
+    public static void verifyAccountUpdateSuccessDialog(AccountPage accountPage, WebDriver driver, SoftAssert softAssert) {
+        boolean isDialogDisplayed = accountPage.isUpdateResponseDialogDisplayed();
+        verifySoftTrue(isDialogDisplayed, "Account update success dialog displayed", driver, softAssert);
 
-        verifySoftEquals(actualMsg, expectedMsg, "Account update success message text", driver, softAssert);
-        accountPage.waitForUpdateAlertToDisappear();
+        if (isDialogDisplayed) {
+            String expectedMsg = MessagesProvider.getAccountUpdateSuccessMessage();
+            String actualMsg = accountPage.getUpdateResponseMsgText();
+
+            verifySoftEquals(actualMsg, expectedMsg, "Account update success message text", driver, softAssert);
+            accountPage.closeSuccessDialog();
+        }
     }
 
     /**
@@ -44,8 +49,8 @@ public class AccountVerificationHelper {
      * @param driver WebDriver instance for screenshot capture
      * @param softAssert The SoftAssert instance for accumulating assertions
      */
-    public static void verifyAccountFieldsUpdateSuccess(AccountPage accountPage, String expectedFullName, String expectedEmail, String expectedPhoneNr, WebDriver driver, SoftAssert softAssert) {
-        verifyAccountUpdateSuccessMsg(accountPage, driver, softAssert);
+    public static void verifyPersonalInfoUpdateSuccess(AccountPage accountPage, String expectedFullName, String expectedEmail, String expectedPhoneNr, WebDriver driver, SoftAssert softAssert) {
+        verifyAccountUpdateSuccessDialog(accountPage, driver, softAssert);
 
         accountPage.refreshPage();
         String actualFullName = accountPage.getFullName();
@@ -67,7 +72,7 @@ public class AccountVerificationHelper {
      * @param softAssert The SoftAssert instance for accumulating assertions
      */
     public static void verifyPasswordUpdateSuccess(AccountPage accountPage, String expectedPassword, WebDriver driver, SoftAssert softAssert) {
-        verifyAccountUpdateSuccessMsg(accountPage, driver, softAssert);
+        verifyAccountUpdateSuccessDialog(accountPage, driver, softAssert);
         String username = accountPage.getUsername();
 
         accountPage.refreshPage();
@@ -80,7 +85,7 @@ public class AccountVerificationHelper {
 
         LoginPage loginPage = new LoginPage(driver);
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(username, expectedPassword);
+        loginPage.fillLoginFormThenSubmit(username, expectedPassword);
         verifyLoginSuccess(loginPage, driver, softAssert);
     }
 

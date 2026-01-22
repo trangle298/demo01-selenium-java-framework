@@ -1,4 +1,4 @@
-package helpers.utils;
+package helpers.providers;
 
 import model.ui.MovieDropdownFields;
 import org.apache.logging.log4j.LogManager;
@@ -14,13 +14,13 @@ import java.util.ResourceBundle;
  * Provides type-safe methods for all expected message keys used in tests.
  * This eliminates magic strings and provides autocomplete/refactoring support.
  */
-public class MessagesUI {
+public class MessagesProvider {
 
-    private static final Logger LOG = LogManager.getLogger(MessagesUI.class);
+    private static final Logger LOG = LogManager.getLogger(MessagesProvider.class);
     private static final Locale DEFAULT_LOCALE = Locale.forLanguageTag("vi-VN");
     private static final ResourceBundle BUNDLE = I18n.getBundle("messages_vi", DEFAULT_LOCALE);
 
-    private MessagesUI() {
+    private MessagesProvider() {
         // utility class, no instantiation
     }
 
@@ -76,7 +76,11 @@ public class MessagesUI {
         return getString("account.success.alert");
     }
 
-    public static String getPhoneRequiredError() {
+    public static String getAccountUpdateExistingEmailError() {
+        return getString("account.error.existEmail");
+    }
+
+    public static String getAccountPhoneNrRequiredError() {
         return getString("account.validation.phone.required");
     }
 

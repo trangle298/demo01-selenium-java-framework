@@ -1,13 +1,16 @@
 package helpers.actions;
 
-import helpers.providers.BookingSamplesProvider;
-import helpers.utils.PickRandomHelper;
+import helpers.providers.ShowtimeSampleProvider;
+import helpers.providers.RandomSampleProvider;
 import helpers.providers.TestUserProvider;
 import model.api.response.ShowtimeBooking;
 import model.TestUser;
 import model.TestUserType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import pages.LoginPage;
 import pages.BookingPage;
+import reports.ExtentReportManager;
 
 import java.util.List;
 
@@ -17,11 +20,14 @@ import java.util.List;
  */
 public class BookingActionHelper {
 
+    private static final Logger LOG = LogManager.getLogger(BookingActionHelper.class);
+
     public static void loginAsBookingUser(LoginPage loginPage) {
         TestUser testUser = TestUserProvider.getUser(TestUserType.USER_BOOKING);
+        LOG.info("Logging in as booking test user: " + testUser.getUsername());
 
         loginPage.navigateToLoginPage();
-        loginPage.fillLoginFormAndSubmit(testUser.getUsername(), testUser.getPassword());
+        loginPage.fillLoginFormThenSubmit(testUser.getUsername(), testUser.getPassword());
         loginPage.topBarNavigation.waitForUserProfileLink();
     }
 
@@ -31,65 +37,44 @@ public class BookingActionHelper {
      * @param bookingPage The ShowtimePage instance
      * @throws Exception if no showtimes with available seats are found
      */
-    public static void navigateToAvailableShowtimePage(BookingPage bookingPage) throws Exception {
-        ShowtimeBooking showtime = BookingSamplesProvider.getShowtimeWithAvailableSeats();
+    public static void navigateToSampleShowtimePageWithAvailability(BookingPage bookingPage) throws Exception {
+        ShowtimeBooking showtime = ShowtimeSampleProvider.getShowtimeWithAvailableSeats();
         String showtimeId = showtime.getShowtimeId();
 
+        LOG.info("Navigating to showtime page with ID: " + showtimeId);
         bookingPage.navigateToShowtimePage(showtimeId);
     }
 
     /**
-     * Selects a specified number of available seats on the showtime page.
+     * Selects a specified number of available seats on the showtime page and books them.
      * Seats are selected randomly from the available seats.
+     * Fallback to all available seats if sampleSize exceeds availability.
      *
      * @param bookingPage The ShowtimePage instance
-     * @param sampleSize Number of seats to select
-     * @return List of selected seat numbers
+     * @param sampleSize Number of seats to select and book
      */
-    public static List<String> selectSampleSeats(BookingPage bookingPage, int sampleSize) {
+    public static void selectSampleSeatsAndBook(BookingPage bookingPage, int sampleSize) {
         List<String> availableSeats = bookingPage.getAvailableSeatNumbers();
-        List<String> seatsToSelect = PickRandomHelper.getRandomSamplesFromList(availableSeats, sampleSize);
+        List<String> seatsToBook = RandomSampleProvider.getRandomSamplesFromList(availableSeats, sampleSize);
 
-        bookingPage.selectAvailableSeats(seatsToSelect);
-        return seatsToSelect;
+        ExtentReportManager.info("Selecting " + seatsToBook.size() + " seats to book: " + seatsToBook);
+        bookingPage.selectSeatsBySeatNumbers(seatsToBook);
+        bookingPage.clickBookTicketsButton();
     }
 
     /**
-     * Selects 2 available seats on the showtime page by default.
+     * Selects between 1 and 5 available seats on the showtime page by default and books them.
+     * (When no fixed sample size is specified)
      *
      * @param bookingPage The ShowtimePage instance
-     * @return List of selected seat numbers
      */
-    public static List<String> selectSampleSeats(BookingPage bookingPage) {
-        return selectSampleSeats(bookingPage, 2);
-    }
-
-    /**
-     * Selects a random number of available seats within the specified range on the showtime page.
-     *
-     *
-     * @param bookingPage The ShowtimePage instance
-     * @param minQuan Minimum number of seats to select
-     * @param maxQuan Maximum number of seats to select
-     * @return List of selected seat numbers
-     */
-    public static List<String> selectAvailableSeatsWithinRange(BookingPage bookingPage, int minQuan, int maxQuan) {
+    public static List<String> selectSampleSeatsAndBook(BookingPage bookingPage) {
         List<String> availableSeats = bookingPage.getAvailableSeatNumbers();
+        List<String> seatsToBook = RandomSampleProvider.getRandomSamplesFromList(availableSeats, 1, 5);
 
-        // Determine the maximum number of seats that can be selected
-        int maxSize = Math.min(availableSeats.size(), maxQuan);
-
-        // Ensure minQuan < maxQuan
-        if (minQuan > maxQuan) {
-            throw new IllegalArgumentException("minQuan should not be greater than maxQuan");
-        }
-
-        // Get a random size within the specified range
-        int randomSize = PickRandomHelper.getRandomIntInRange(minQuan, maxSize);
-
-        // Select random seats based on the determined size
-        List<String> seatsToSelect = PickRandomHelper.getRandomSamplesFromList(availableSeats, randomSize);
-
-        return seatsToSelect;
+        ExtentReportManager.info("Selecting of " + seatsToBook.size() + " seats to book: " + seatsToBook);
+        bookingPage.selectSeatsBySeatNumbers(seatsToBook);
+        bookingPage.clickBookTicketsButton();
+        return seatsToBook;
     }
 }

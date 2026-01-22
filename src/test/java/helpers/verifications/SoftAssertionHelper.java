@@ -1,4 +1,4 @@
-package helpers.utils;
+package helpers.verifications;
 
 import org.openqa.selenium.WebDriver;
 import org.testng.Reporter;
