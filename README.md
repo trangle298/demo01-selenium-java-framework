@@ -201,63 +201,21 @@ public class LoginPage extends BasePage {
 
 Tests are organized using TestNG groups for flexible execution. Available groups:
 
-**By Test Type:**
-- `component` - Single component isolated tests (e.g., login form validation, individual field checks)
-- `integration` - Multi-component integration tests (e.g., login → account page navigation)
-- `e2e` - Full user journey end-to-end tests (e.g., register → login → update account → logout)
-
-**By Feature Area:**
 **By Type:** `component`, `integration`, `e2e`
+
 **By Feature:** `auth`, `register`, `booking`, `browsing`, `account`
+
 **By Priority:** `smoke`, `critical`, `regression`, `negative`
-}
 
+```java
 @Test(groups = {"integration", "auth", "account", "smoke"})
-public void testLoginThenNavigateToAccount() {
-public void testRegisterWithValidData() {
-    // Test implementation
-gradlew test -Dgroups=smoke
+public void testValidLogin() {
+ // Test implementation
+}
+```
 
-
-Key features of `BaseTest`:
-- **Before/After hooks** - Suite, Test, Method levels
-- **Screenshot capture** - Automatic screenshots on test failures
-
-2. **Use Helper Classes for Verification**
-
-- **Automatic reporting** - ExtentReport integration
-- **Screenshot capture** - On test failures
-
-2. **Follow AAA Pattern:**
-       // Act
-       loginPage.login("user@example.com", "password");
-       
-       // Assert
-       assertTrue(loginPage.isLoginSuccessful());
-   }
-   ```
-
-4. **Use Descriptive Test Names:**
-   ```java
-   @Test
-   public void testRegisterWithValidData_ShouldCreateNewAccount();
-   
-   @Test
-3. **Use Descriptive Test Names:**
-   ```
-
-5. **Add Test Groups:**
-   
-   @Test(groups = {"component", "auth", "negative"})
-4. **Add Test Groups:**
-   ```
-
-       return new Object[][] {
-           {"user1@test.com", "password1"},
-5. **Use Data Providers for Data-Driven Tests:**
-       };
-7. **Use Soft Assertions for E2E Tests:**
-   public void testLoginWithDifferentUsers(String email, String password)
+## Run Tests
+### Run All Tests
 ```java
 gradlew test
 ```
