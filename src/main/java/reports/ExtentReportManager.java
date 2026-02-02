@@ -28,6 +28,10 @@ public class ExtentReportManager {
 
     public static void initializeExtentReports() {
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(REPORT_PATH);
+
+        // generate self-contained HTML reports. By setting this to true, the report loads necessary assets (CSS, JS) locally, ensuring it works without an internet connection.
+        sparkReporter.config().setOfflineMode(true);
+
         extent = new ExtentReports();
         extent.attachReporter(sparkReporter);
 
