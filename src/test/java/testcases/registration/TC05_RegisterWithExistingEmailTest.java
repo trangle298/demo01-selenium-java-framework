@@ -1,9 +1,9 @@
 package testcases.registration;
 
 import base.BaseTest;
-import config.ConfigManager;
 import helpers.providers.MessagesProvider;
-import helpers.verifications.AuthVerificationHelper;
+import helpers.providers.TestUserProvider;
+import helpers.verifications.RegisterVerificationHelper;
 import model.ui.RegisterDataUI;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -11,13 +11,13 @@ import org.testng.asserts.SoftAssert;
 import pages.RegisterPage;
 import reports.ExtentReportManager;
 
-import static helpers.providers.AccountInfoTestDataGenerator.generateValidRegisterFormInputs;
+import static helpers.providers.UserAccountTestDataGenerator.generateValidRegisterFormInputs;
 
 public class TC05_RegisterWithExistingEmailTest extends BaseTest {
 
     @DataProvider(name = "existingEmailScenarios")
     public Object[][] existingEmailScenarios() {
-        String existingEmail = ConfigManager.getDefaultUserEmail();
+        String existingEmail = TestUserProvider.getDefaultTestUser().getEmail();
 
         return new Object[][]{
                 {existingEmail, "Existing Email"},
@@ -25,7 +25,8 @@ public class TC05_RegisterWithExistingEmailTest extends BaseTest {
         };
     }
 
-    @Test(dataProvider = "existingEmailScenarios", description = "Test Blocked Registration With Existing Email Regardless Of Casing")
+    @Test(description = "Test Blocked Registration With Existing Email Regardless Of Casing",
+            dataProvider = "existingEmailScenarios")
     public void testRegisterBlockedWithExistingEmail(String email, String scenario) {
 
         ExtentReportManager.info("Test Register with " + scenario);
@@ -45,9 +46,8 @@ public class TC05_RegisterWithExistingEmailTest extends BaseTest {
 
         ExtentReportManager.info("Verify form validation alert for existing email");
         String expectedMsg = MessagesProvider.getRegisterExistingEmailError();
-        AuthVerificationHelper.verifyRegisterFormErrorAlert(registerPage, expectedMsg, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFormErrorAlert(registerPage, expectedMsg, getDriver(), softAssert);
 
         softAssert.assertAll();
     }
-
 }

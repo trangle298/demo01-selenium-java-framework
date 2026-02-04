@@ -12,39 +12,39 @@ import org.testng.ITestResult;
  */
 public class TestListener implements ITestListener {
 
-    public static final Logger logger = LogManager.getLogger(TestListener.class);
+    public static final Logger LOG = LogManager.getLogger(TestListener.class);
 
     @Override
     public void onTestStart(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        logger.info("===== START TEST: " + methodName + " =====");
+        LOG.info("===== START TEST: " + methodName + " =====");
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        logger.info("===== PASSED TEST: " + methodName + " =====");
+        LOG.info("===== PASSED TEST: " + methodName + " =====");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        logger.error("===== FAILED TEST: " + methodName + " =====", result.getThrowable());
+        LOG.error("===== FAILED TEST: " + methodName + " =====", result.getThrowable());
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        logger.warn("===== SKIPPED TEST: " + methodName + " =====");
+        LOG.warn("===== SKIPPED TEST: " + methodName + " =====");
     }
 
     @Override
     public void onStart(ITestContext context) {
-        logger.info(">>> START TEST SUITE: " + context.getName());
+        LOG.info(">>> START TEST SUITE: " + context.getName());
     }
 
     @Override
     public void onFinish(ITestContext context) {
-        logger.info(">>> FINISH TEST SUITE: " + context.getName());
+        LOG.info(">>> FINISH TEST SUITE: " + context.getName());
     }
 }

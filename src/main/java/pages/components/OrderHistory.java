@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mozilla.javascript.TopLevel.Builtins.RegExp;
 import static utils.DateTimeNormalizer.normalize;
 
 public class OrderHistory extends BasePage {
@@ -26,29 +27,17 @@ public class OrderHistory extends BasePage {
     // Should be updated if the application adds better selectors
 
     // Find the main container by locating the div that contains a h1 with text 'Lịch sử đặt vé' (Order History)
-    @FindBy(xpath = ".//div[contains(@class,'container')][.//h1='Lịch sử đặt vé']")
+    @FindBy(xpath = "//div[contains(@class,'container')][.//h1='Lịch sử đặt vé']")
     private WebElement divOrderHistoryContainer;
 
     // Find all order entry divs by locating divs that contain a h3 with text 'Ngày đặt' (Order Date)
     // Should add unique identifiers such as order IDs
-    @FindBy(xpath = ".//h3[contains(text(),'Ngày đặt')]/ancestor::div[contains(@class,'container')][1]")
+    @FindBy(xpath = "//h3[contains(text(),'Ngày đặt')]/ancestor::div[contains(@class,'container')][1]")
     private List<WebElement> divOrderEntries;
-
-    private Map<OrderEntryField, String> entryFieldLabelMap;
-
-    private void initializeEntryFieldLabelMap() {
-        entryFieldLabelMap = new HashMap<>();
-        entryFieldLabelMap.put(OrderEntryField.PURCHASE_DATETIME, "Ngày đặt:");
-        entryFieldLabelMap.put(OrderEntryField.MOVIE_NAME, "Tên phim:");
-        entryFieldLabelMap.put(OrderEntryField.PRICE, "Giá vé:");
-        entryFieldLabelMap.put(OrderEntryField.THEATER_NAME, "Rạp");
-        entryFieldLabelMap.put(OrderEntryField.SEAT_NUMBERS, "Ghế số:");
-    }
 
     public OrderHistory(WebDriver driver) {
         super(driver);
         PageFactory.initElements(driver, this);
-        initializeEntryFieldLabelMap();
     }
 
     // ============================================
@@ -71,7 +60,7 @@ public class OrderHistory extends BasePage {
     }
 
     public OrderEntry getLastOrderEntryDetails() {
-        By byOrderEntries = By.xpath(".//h3[contains(text(),'Ngày đặt')]/ancestor::div[contains(@class,'container')][1]");
+        By byOrderEntries = By.xpath("//h3[contains(text(),'Ngày đặt')]/ancestor::div[contains(@class,'container')][1]");
         List<WebElement> lastEntry = waitForVisibilityOfAllElementsLocatedBy(byOrderEntries);
         return getOrderEntryDetails(lastEntry.getLast());
     }
@@ -79,37 +68,38 @@ public class OrderHistory extends BasePage {
     // ============================================
     // ---- Private Methods  ----
     // ============================================
-    private WebElement getOrderEntryFieldElement(WebElement divOrderEntry, OrderEntryField fieldType) {
+    private WebElement getOrderEntryFieldElement(WebElement divOrderEntry, OrderEntryField field) {
         By byFieldLocator;
 
         // Special case for Cinema Branch Name which does not have a field label
-        // Currently identified as the h1 that does not contain 'Tên phim:'
-        if (fieldType.equals(OrderEntryField.CINEMA_BRANCH_NAME)) {
-            byFieldLocator = By.xpath("//h1[not(contains(text(),'Tên phim:'))]");
+        // Currently identified as the h1 below order history title that does not contain 'Tên phim:'
+        if (field.equals(OrderEntryField.CINEMA_BRANCH_NAME)) {
+            byFieldLocator = By.xpath("//h1[text()='Lịch sử đặt vé']//following::h1[not(contains(text(),'Tên phim:'))]");
         }
 
         else {
-            String labelText = entryFieldLabelMap.get(fieldType);
+            String labelText = field.getLabel();
             if (labelText == null) {
-                LOG.warn("Unknown order entry field type: " + fieldType);
+                LOG.warn("Unknown order entry field type: " + field);
                 return null;
             }
-            String fieldXPath = String.format(".//*[contains(text(), '%s')]", labelText);
+            String fieldXPath = String.format("//h1[text()='Lịch sử đặt vé']//following::*[contains(text(), '%s')]", labelText);
             byFieldLocator = By.xpath(fieldXPath);
         }
         return waitForVisibilityOfNestedElementLocatedBy(divOrderEntry, byFieldLocator);
     }
 
-    private String getOrderEntryFieldValue(WebElement divOrderEntry, OrderEntryField fieldType) {
-        WebElement fieldElement = getOrderEntryFieldElement(divOrderEntry, fieldType);
+    private String getOrderEntryFieldValue(WebElement divOrderEntry, OrderEntryField field) {
+        WebElement fieldElement = getOrderEntryFieldElement(divOrderEntry, field);
         String fullText = getText(fieldElement);
 
         // Extract the value after the label text
-        String labelText = entryFieldLabelMap.get(fieldType);
-        if (fieldType.equals(OrderEntryField.CINEMA_BRANCH_NAME)) {
+        String labelText = field.getLabel();
+        if (field.equals(OrderEntryField.CINEMA_BRANCH_NAME) || field.equals(OrderEntryField.THEATER_NAME)) {
             return fullText.trim(); // No label to remove
         }
-        return fullText.replace(labelText, "").trim();
+
+        return fullText.replaceAll(labelText + ":?", "").trim();
     }
 
     private String getPurchaseDatetimeNormalized(WebElement orderDiv) {
@@ -125,7 +115,7 @@ public class OrderHistory extends BasePage {
 
     private List<String> getSeatNumbersList(WebElement orderDiv) {
         String seatNumbersStr = getOrderEntryFieldValue(orderDiv, OrderEntryField.SEAT_NUMBERS);
-        return List.of(seatNumbersStr.split("^\\d"));
+        return List.of(seatNumbersStr.split(" "));
     }
 
     private OrderEntry getOrderEntryDetails(WebElement orderDiv) {

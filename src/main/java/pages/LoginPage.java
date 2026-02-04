@@ -1,6 +1,7 @@
 package pages;
 
-import config.Routes;
+import config.urlConstants;
+import model.enums.LoginField;
 import model.ui.LoginDataUI;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -56,7 +57,7 @@ public class LoginPage extends CommonPage {
     // ---- Navigation ----
     public void navigateToLoginPage() {
         LOG.info("Navigate to Login Page");
-        driver.get(url(Routes.LOGIN));
+        driver.get(url(urlConstants.LOGIN));
     }
 
     // ---- Form interactions: fill fields, click button ----
@@ -79,10 +80,6 @@ public class LoginPage extends CommonPage {
         clickLoginButton();
     }
 
-    public void fillLoginFormThenSubmit(LoginDataUI loginInputs) {
-        fillLoginFormThenSubmit(loginInputs.getTaiKhoan(), loginInputs.getMatKhau());
-    }
-
     // ---- Getters ----
     // Get success dialog state and text
     public boolean isLoginSuccessDialogDisplayed() {
@@ -94,37 +91,27 @@ public class LoginPage extends CommonPage {
     }
 
     // Get validation error state and text
-    public boolean isPasswordValidationMsgDisplayed() {
-        return isElementDisplayedShort(lblInvalidPasswordMsg);
+    public boolean isValidationMessageDisplayed(LoginField fieldName) {
+        WebElement lblValidationMsg = getValidationMsgElement(fieldName);
+        return isElementDisplayedShort(lblValidationMsg);
     }
 
-    public String getPasswordValidationText() {
-        return getText(lblInvalidPasswordMsg);
-    }
-
-    public boolean isValidationMessageDisplayed(String fieldName) {
-       WebElement lblValidationMsg = getValidationMsgElement(fieldName);
-       return isElementDisplayedShort(lblValidationMsg);
-    }
-
-    public String getFieldValidationText(String fieldName) {
+    public String getFieldValidationText(LoginField fieldName) {
         WebElement lblValidationMsg = getValidationMsgElement(fieldName);
         return getText(lblValidationMsg);
     }
 
-    private WebElement getValidationMsgElement(String fieldName) {
-        String fieldNameNormalized = fieldName.toLowerCase();
-        switch (fieldNameNormalized) {
-            case "username":
-            case "password":
-                String id = fieldNameNormalized + "-helper-text";
+    private WebElement getValidationMsgElement(LoginField field) {
+        String fieldId = field.getFieldId();
+        switch (field) {
+            case LoginField.USERNAME:
+            case LoginField.PASSWORD:
+                String id = fieldId + "-helper-text";
                 return waitForVisibilityOfElementLocatedBy(By.id(id));
             default:
-                throw new RuntimeException("Invalid field name: " + fieldName);
+                throw new RuntimeException("Invalid Login field: " + field);
         }
     }
-
-
 
     // Get login error alert state and text
     public boolean isLoginErrorAlertDisplayed() {

@@ -1,8 +1,10 @@
 package api.services;
 
 import api.ApiClient;
-import api.ApiEndpoints;
+import api.ApiConfig;
+import api.ApiConstants;
 import io.restassured.common.mapper.TypeRef;
+import io.restassured.response.Response;
 import model.api.request.RegisterRequestPayload;
 import model.UserAccount;
 import org.apache.logging.log4j.LogManager;
@@ -17,25 +19,17 @@ public class UserService {
     private static final Logger LOG = LogManager.getLogger(UserService.class);
 
     public UserService() {
-        this.apiClient = new ApiClient(ApiEndpoints.baseUri);
+        this.apiClient = new ApiClient(ApiConfig.getBaseUri());
     }
 
-    public void sendRegisterRequest(RegisterRequestPayload request) {
-        this.apiClient
-                .withBody(request)
-                .post(ApiEndpoints.USER_REGISTER_ENDPOINT)
-                .then()
-                .statusCode(200);
+    public boolean isAccountExisting(String username) {
+        UserAccount user = getUserDetails(username);
+        if (user == null) {
+            return false;
+        }
+        return true;
     }
 
-    /**
-     * Get user details by username.
-     * The API returns an array with a single user object.
-     *
-     * @param username The username to search for
-     * @return UserAccount object
-     * @throws RuntimeException if user is not found
-     */
     public UserAccount getUserDetails(String username) {
         if (username == null || username.isEmpty()) {
             throw new InvalidParameterException("Username is null or empty");
@@ -44,7 +38,7 @@ public class UserService {
         List<UserAccount> users = this.apiClient
                 .withQueryParam("MaNhom", "GP09")
                 .withQueryParam("tuKhoa", username)
-                .getAndDeserialize(ApiEndpoints.USER_SEARCH_ENDPOINT, new TypeRef<>() {});
+                .getAndDeserialize(ApiConstants.USER_SEARCH_ENDPOINT, new TypeRef<>() {});
 
         if (users.size() > 1) {
             throw new RuntimeException("Found more than one user with username: " + username);
@@ -58,12 +52,22 @@ public class UserService {
         return users.getFirst();
     }
 
-    public boolean isAccountExisting(String username) {
-        UserAccount user = getUserDetails(username);
-        if (user == null) {
-            return false;
-        }
-        return true;
+    public void sendRegisterRequest(RegisterRequestPayload request) {
+        this.apiClient
+                .withBody(request)
+                .post(ApiConstants.USER_REGISTER_ENDPOINT)
+                .then()
+                .statusCode(200);
+    }
+
+    public Response sendDeleteUserRequest(String username) {
+
+        String adminToken = AuthService.getAdminToken();
+
+        return apiClient
+                .withAuthToken(adminToken)
+                .withQueryParam("TaiKhoan", username)
+                .delete(ApiConstants.USER_DELETE_ENDPOINT);
     }
 
 }

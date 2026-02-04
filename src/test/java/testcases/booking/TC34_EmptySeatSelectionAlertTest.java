@@ -1,11 +1,10 @@
 package testcases.booking;
 
 import base.BaseTest;
-import config.ConfigManager;
 import helpers.actions.AuthActionHelper;
 import helpers.actions.BookingActionHelper;
 import helpers.verifications.BookingVerificationHelper;
-import org.testng.annotations.BeforeMethod;
+import model.UserAccount;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 import pages.BookingPage;
@@ -14,19 +13,17 @@ import reports.ExtentReportManager;
 
 public class TC34_EmptySeatSelectionAlertTest extends BaseTest {
 
-    @BeforeMethod(alwaysRun = true)
-    public void setUpMethod() {
-        String username = ConfigManager.getDefaultUserUsername();
-        String password = ConfigManager.getDefaultUserPassword();
-
-        LoginPage loginPage = new LoginPage(getDriver());
-        AuthActionHelper.login(loginPage, username, password);
-    }
-
-    @Test
+    @Test(groups = "requiresUser")
     public void testBookingNoSeatSelectedError() throws Exception {
+
         SoftAssert softAssert = new SoftAssert();
+        LoginPage loginPage = new LoginPage(getDriver());
         BookingPage bookingPage = new BookingPage(getDriver());
+
+        // Login
+        ExtentReportManager.info("Login");
+        UserAccount testUser = getTestUser();
+        AuthActionHelper.login(loginPage, testUser);
 
         // Find a random showtime with available seats (from API data) and navigate to its booking page
         ExtentReportManager.info("Navigate to showtime booking page");

@@ -23,4 +23,48 @@ public class UserAccount {
 
     @lombok.Builder.Default
     protected final String maLoaiNguoiDung = UserType.CUSTOMER.getLabel();
+
+    public String getUsername() {
+        return taiKhoan;
+    }
+
+    public String getFullName() {
+        return hoTen;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhoneNumber() {
+        return soDt;
+    }
+
+    public String getPassword() {
+        return matKhau;
+    }
+
+    public String getUserType() {
+        return maLoaiNguoiDung;
+    }
+
+    public UserAccount setPassword(String matKhau) {
+        this.matKhau = matKhau;
+        return this;
+    }
+
+    public UserAccount setEmail(String email) {
+        this.email = email;
+        return this;
+    }
+
+    public UserAccount setFullName(String hoTen) {
+        this.hoTen = hoTen;
+        return this;
+    }
+
+    public UserAccount setUsername(String taiKhoan) {
+        this.taiKhoan = taiKhoan;
+        return this;
+    }
 }

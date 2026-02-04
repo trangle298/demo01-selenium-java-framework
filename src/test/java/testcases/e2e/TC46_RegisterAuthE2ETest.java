@@ -2,8 +2,9 @@ package testcases.e2e;
 
 import api.services.UserService;
 import base.BaseTest;
-import helpers.providers.AccountInfoTestDataGenerator;
+import helpers.providers.UserAccountTestDataGenerator;
 import helpers.verifications.AccountVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.UserAccount;
 import model.ui.RegisterDataUI;
 import org.testng.annotations.BeforeMethod;
@@ -14,9 +15,7 @@ import pages.LoginPage;
 import pages.RegisterPage;
 import reports.ExtentReportManager;
 
-import static helpers.verifications.AccountVerificationHelper.verifyAccountDataMatchesRegistration;
 import static helpers.verifications.AuthVerificationHelper.*;
-import static helpers.verifications.SoftAssertionHelper.verifySoftEquals;
 
 public class TC46_RegisterAuthE2ETest extends BaseTest {
 
@@ -43,7 +42,7 @@ public class TC46_RegisterAuthE2ETest extends BaseTest {
         ExtentReportManager.info("Register new account");
         registerPage.navigateToRegisterPage();
 
-        RegisterDataUI registerData = AccountInfoTestDataGenerator.generateValidRegisterFormInputs();
+        RegisterDataUI registerData = UserAccountTestDataGenerator.generateValidRegisterFormInputs();
         registerPage.fillRegisterFormThenSubmit(
                 registerData.getUsername(),
                 registerData.getPassword(),
@@ -52,12 +51,12 @@ public class TC46_RegisterAuthE2ETest extends BaseTest {
                 registerData.getEmail()
         );
 
-        verifyRegisterSuccessMsg(registerPage, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterSuccessMsg(registerPage, getDriver(), softAssert);
 
         // Verify account created in backend
         ExtentReportManager.info("Verify account persisted in backend");
         UserAccount userFromApi = userService.getUserDetails(registerData.getUsername());
-        verifyAccountDataMatchesRegistration(registerData, userFromApi, "Backend API", getDriver(), softAssert);
+        AccountVerificationHelper.verifyAccountDataMatchesUIRegistration(registerData, userFromApi, "Backend API", getDriver(), softAssert);
 
         // ============================================
         // Step 2: Login with newly registered account
@@ -77,7 +76,7 @@ public class TC46_RegisterAuthE2ETest extends BaseTest {
 
         ExtentReportManager.info("Verify displayed user data matches registered inputs");
         UserAccount accountDataFromUI = accountPage.getAccountData();
-        verifyAccountDataMatchesRegistration(registerData, accountDataFromUI, "UI Account Page", getDriver(), softAssert);
+        AccountVerificationHelper.verifyAccountDataMatchesUIRegistration(registerData, accountDataFromUI, "UI Account Page", getDriver(), softAssert);
 
         // ============================================
         // Step 4: Logout

@@ -1,7 +1,7 @@
 package pages;
 
 import pages.components.ChainedDropdownsHome;
-import config.Routes;
+import config.urlConstants;
 import org.openqa.selenium.WebDriver;
 
 /**
@@ -18,7 +18,7 @@ public class HomePage extends CommonPage {
     }
 
     public void navigateToHomePage() {
-        driver.get(url(Routes.HOME));
+        driver.get(url(urlConstants.HOME));
     }
 
 }

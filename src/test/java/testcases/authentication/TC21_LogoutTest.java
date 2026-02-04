@@ -3,6 +3,7 @@ package testcases.authentication;
 import base.BaseTest;
 import helpers.actions.AuthActionHelper;
 import helpers.verifications.AuthVerificationHelper;
+import model.UserAccount;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 import pages.HomePage;
@@ -11,7 +12,7 @@ import reports.ExtentReportManager;
 
 public class TC21_LogoutTest extends BaseTest {
 
-    @Test
+    @Test(groups = "requiresUser")
     public void testSuccessfulLogout() {
 
         SoftAssert softAssert = new SoftAssert();
@@ -19,7 +20,8 @@ public class TC21_LogoutTest extends BaseTest {
         HomePage homePage = new HomePage(getDriver());
 
         ExtentReportManager.info("Log in and navigate to Homepage if not redirected");
-        AuthActionHelper.loginAsDefaultUser(loginPage);
+        UserAccount testUser = getTestUser();
+        AuthActionHelper.login(loginPage, testUser);
 
         boolean homepageRedirected = loginPage.isRedirectedToHomepage();
         if (!homepageRedirected) {

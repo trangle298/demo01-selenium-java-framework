@@ -10,8 +10,6 @@
            <class name="testcases.registration.TC01_RegisterWithValidInputsTest" />
            <class name="testcases.authentication.TC16_LoginWithValidCredentialsTest" />
            <class name="testcases.authentication.TC21_LogoutTest" />
-           <class name="testcases.account.TC24_UpdateValidNewUserInfoTest" />
-           <class name="testcases.account.TC25_UpdateValidNewPasswordTest" />
            <class name="testcases.browsing.TC36_DropdownAppliedFiltersNavigationTest" />
            <class name="testcases.booking.TC32_UserSeatSelectionAndConfirmationTest" />
        </classes>

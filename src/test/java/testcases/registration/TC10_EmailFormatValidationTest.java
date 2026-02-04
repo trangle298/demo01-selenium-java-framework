@@ -2,7 +2,7 @@ package testcases.registration;
 
 import base.BaseTest;
 import helpers.providers.MessagesProvider;
-import helpers.verifications.AuthVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.enums.RegisterField;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -10,7 +10,7 @@ import org.testng.asserts.SoftAssert;
 import pages.RegisterPage;
 import reports.ExtentReportManager;
 
-import static helpers.providers.AccountInfoTestDataGenerator.generateNewUniqueEmail;
+import static helpers.providers.UserAccountTestDataGenerator.generateNewUniqueEmail;
 
 public class TC10_EmailFormatValidationTest extends BaseTest {
 
@@ -31,7 +31,8 @@ public class TC10_EmailFormatValidationTest extends BaseTest {
         };
     }
 
-    @Test(dataProvider = "invalidEmailFormatScenarios", description = "Test Field Validation For Email Format")
+    @Test(description = "Test Field Validation For Email Format",
+            dataProvider = "invalidEmailFormatScenarios")
     public void testEmailFormatValidation(String invalidEmail, String scenario) {
 
         ExtentReportManager.info("Testing Invalid Email Scenario: " + scenario);
@@ -44,7 +45,7 @@ public class TC10_EmailFormatValidationTest extends BaseTest {
 
         ExtentReportManager.info("Verify Email validation message");
         String emailValidationMsg = MessagesProvider.getEmailValidationError();
-        AuthVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.EMAIL, emailValidationMsg, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.EMAIL, emailValidationMsg, getDriver(), softAssert);
 
         softAssert.assertAll();
     }

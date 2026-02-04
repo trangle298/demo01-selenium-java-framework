@@ -19,33 +19,52 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.addAll(['--release', '21'])
 }
 
-dependencies {
-    implementation("org.seleniumhq.selenium:selenium-java:4.35.0")
-    implementation("org.testng:testng:7.11.0")
-    implementation("org.apache.logging.log4j:log4j-core:2.25.1")
-    implementation("org.apache.logging.log4j:log4j-api:2.25.1")
-    implementation("com.aventstack:extentreports:5.1.2")
+ext {
+    seleniumVersion = "4.35.0"
+    testNGVersion = "7.11.0"
+    log4jVersion = "2.25.1"
+    extentReportVersion = "5.1.2"
+    fakerVersion = "2.3.1"
+    restAssuredVersion = "5.5.6"
+    commonsIOVersion = "2.20.0"
+    johnzonVersion = "1.2.21"
+    jsonVersion = "5.5.6"
+    jacksonVersion = "2.20.0"
+    gsonVersion = "2.13.2"
+    yamlVersion = "2.5"
+    lombokVersion = "1.18.42"
+    dotenvVersion = "3.0.0"
+}
 
-    implementation("net.datafaker:datafaker:2.3.1")
-    implementation("io.rest-assured:rest-assured:5.5.6") {
+dependencies {
+    implementation("org.seleniumhq.selenium:selenium-java:${seleniumVersion}")
+    implementation("org.testng:testng:${testNGVersion}")
+    implementation("org.apache.logging.log4j:log4j-core:${log4jVersion}")
+    implementation("org.apache.logging.log4j:log4j-api:${log4jVersion}")
+    implementation("com.aventstack:extentreports:${extentReportVersion}")
+
+    implementation("net.datafaker:datafaker:${fakerVersion}")
+    implementation("io.rest-assured:rest-assured:${restAssuredVersion}") {
         exclude group: "org.codehaus.jackson"
     }
-    implementation("commons-io:commons-io:2.20.0")
-    implementation("org.apache.johnzon:johnzon-core:1.2.21")
-    implementation("org.apache.johnzon:johnzon-jsonb:1.2.21")
+    implementation("commons-io:commons-io:${commonsIOVersion}")
+    implementation("org.apache.johnzon:johnzon-core:${johnzonVersion}")
+    implementation("org.apache.johnzon:johnzon-jsonb:${johnzonVersion}")
 
-    implementation("io.rest-assured:json-path:5.5.6")
-    implementation("io.rest-assured:json-schema-validator:5.5.6")
+    implementation("io.rest-assured:json-path:${jsonVersion}")
+    implementation("io.rest-assured:json-schema-validator:${jsonVersion}")
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+    implementation("com.google.code.gson:gson:${gsonVersion}")
 
-    implementation("org.yaml:snakeyaml:2.5")
+    implementation("org.yaml:snakeyaml:${yamlVersion}")
 
-    compileOnly 'org.projectlombok:lombok:1.18.42' // Use the latest version
-    annotationProcessor 'org.projectlombok:lombok:1.18.42'
-    testCompileOnly 'org.projectlombok:lombok:1.18.42'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+    compileOnly ("org.projectlombok:lombok:${lombokVersion}") // Use the latest version
+    annotationProcessor ("org.projectlombok:lombok:${lombokVersion}")
+    testCompileOnly ("org.projectlombok:lombok:${lombokVersion}")
+    testAnnotationProcessor ("org.projectlombok:lombok:${lombokVersion}")
+
+    implementation ("io.github.cdimascio:dotenv-java:${dotenvVersion}")
 }
 
 tasks.withType(Test) {
@@ -70,21 +89,39 @@ tasks.withType(Test) {
     }
 }
 
-tasks.register('e2eTests', Test) {
-    useTestNG {
-        suites "src/test/resources/e2e.xml"
-    }
-}
-
-tasks.register('smokeTests', Test) {
+tasks.register('smoke', Test) {
     useTestNG {
         suites "src/test/resources/smoke.xml"
     }
 }
 
-tasks.register('regressionTests', Test) {
+tasks.register('regression', Test) {
     useTestNG {
         suites "src/test/resources/regression.xml"
+    }
+}
+
+tasks.register('userManagement', Test) {
+    useTestNG {
+        suites "src/test/resources/user-management.xml"
+    }
+}
+
+tasks.register('browsing', Test) {
+    useTestNG {
+        suites "src/test/resources/browsing.xml"
+    }
+}
+
+tasks.register('booking', Test) {
+    useTestNG {
+        suites "src/test/resources/booking.xml"
+    }
+}
+
+tasks.register('e2e', Test) {
+    useTestNG {
+        suites "src/test/resources/e2e.xml"
     }
 }
 

@@ -1,9 +1,10 @@
 package api.services;
 
 import api.ApiClient;
+import api.ApiConfig;
 import utils.DateTimeNormalizer;
 import io.restassured.common.mapper.TypeRef;
-import api.ApiEndpoints;
+import api.ApiConstants;
 import model.api.response.CinemaSystem;
 import model.api.response.CinemaBranch;
 import model.api.response.CinemaSystemSchedule;
@@ -17,22 +18,22 @@ public class CinemaService {
     private final ApiClient apiClient;
 
     public CinemaService() {
-        this.apiClient = new ApiClient(ApiEndpoints.baseUri);
+        this.apiClient = new ApiClient(ApiConfig.getBaseUri());
     }
 
     public List<CinemaSystem> getCinemaSystem() {
         return apiClient
-                .getAndDeserialize(ApiEndpoints.CINEMA_SYSTEM_ENDPOINT, new TypeRef<>() {});
+                .getAndDeserialize(ApiConstants.CINEMA_SYSTEM_ENDPOINT, new TypeRef<>() {});
     }
 
     public List<CinemaBranch> getCinemaBranches(String cinemaId) {
         return apiClient.withQueryParam("maHeThongRap", cinemaId)
-                .getAndDeserialize(ApiEndpoints.CINEMA_BRANCH_ENDPOINT, new TypeRef<>() {});
+                .getAndDeserialize(ApiConstants.CINEMA_BRANCH_ENDPOINT, new TypeRef<>() {});
     }
 
     public List<CinemaSystemSchedule> getShowtimesByCinemaSystem(String cinemaId) {
         return apiClient.withQueryParam("maHeThongRap", cinemaId)
-                .getAndDeserialize(ApiEndpoints.CINEMA_SHOWTIME_ENDPOINT, new TypeRef<>() {});
+                .getAndDeserialize(ApiConstants.CINEMA_SHOWTIME_ENDPOINT, new TypeRef<>() {});
     }
 
     /**
@@ -44,7 +45,7 @@ public class CinemaService {
     public MovieSchedule getShowtimesForMovie(String movieId) {
         return apiClient
                 .withQueryParam("maPhim", movieId)
-                .getAndDeserialize(ApiEndpoints.MOVIE_SHOWTIME_ENDPOINT, MovieSchedule.class);
+                .getAndDeserialize(ApiConstants.MOVIE_SHOWTIME_ENDPOINT, MovieSchedule.class);
     }
 
     /**

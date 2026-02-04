@@ -2,8 +2,7 @@ package pages;
 
 import base.BasePage;
 import pages.components.TopBarNavigation;
-import config.ConfigManager;
-import config.Routes;
+import config.urlConstants;
 import org.openqa.selenium.WebDriver;
 
 /**
@@ -25,8 +24,7 @@ public class CommonPage extends BasePage {
      * Returns true when the URL changes to homepage within the default timeout.
      */
     public boolean isRedirectedToHomepage() {
-        String homepageUrl = ConfigManager.getBaseUrl();
-        return waitForUrl(homepageUrl);
+        return waitForUrl(url(urlConstants.HOME));
     }
 
     /**
@@ -34,7 +32,7 @@ public class CommonPage extends BasePage {
      * Returns true when the URL changes to the expected showtime page within the default timeout.
      */
     public boolean isRedirectedToBookingPage(String showtimeId) {
-        String showtimeUrl = String.format(url(Routes.SHOWTIME), showtimeId);
+        String showtimeUrl = String.format(url(urlConstants.SHOWTIME), showtimeId);
         return waitForUrl(showtimeUrl);
     }
 }

@@ -1,7 +1,8 @@
 package api.services;
 
 import api.ApiClient;
-import api.ApiEndpoints;
+import api.ApiConfig;
+import api.ApiConstants;
 import io.restassured.common.mapper.TypeRef;
 import model.api.response.Movie;
 import java.util.HashMap;
@@ -13,19 +14,19 @@ public class MovieService {
     private final ApiClient apiClient;
 
     public MovieService() {
-        this.apiClient = new ApiClient(ApiEndpoints.baseUri);
+        this.apiClient = new ApiClient(ApiConfig.getBaseUri());
     }
 
     public List<Movie> getMovieList() {
         return this.apiClient.withQueryParam("maNhom", "GP09")
-                .getAndDeserialize(ApiEndpoints.MOVIE_LIST_ENDPOINT, new TypeRef<>() {
+                .getAndDeserialize(ApiConstants.MOVIE_LIST_ENDPOINT, new TypeRef<>() {
                 });
     }
 
     public Movie getMovieInfoById(String movieId) {
         return this.apiClient
                 .withQueryParam("movieId", movieId)
-                .getAndDeserialize(ApiEndpoints.MOVIE_LIST_ENDPOINT, Movie.class);
+                .getAndDeserialize(ApiConstants.MOVIE_LIST_ENDPOINT, Movie.class);
     }
 
     // ===== Data Transformation Utilities =====

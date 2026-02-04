@@ -2,7 +2,7 @@ package testcases.registration;
 
 import base.BaseTest;
 import helpers.providers.MessagesProvider;
-import helpers.verifications.AuthVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.enums.RegisterField;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -23,7 +23,8 @@ public class TC06_EmptyRegisterFieldValidationTest extends BaseTest {
         };
     }
 
-    @Test(dataProvider = "emptyFieldScenarios", description = "Test Field Validation For Empty Field")
+    @Test(description = "Test Field Validation For Empty Field",
+            dataProvider = "emptyFieldScenarios")
     public void testEmptyFieldValidation(RegisterField fieldType, String scenario) {
         RegisterPage registerPage = new RegisterPage(getDriver());
         SoftAssert softAssert = new SoftAssert();
@@ -34,7 +35,7 @@ public class TC06_EmptyRegisterFieldValidationTest extends BaseTest {
 
         ExtentReportManager.info("Verify validation error message for " + scenario);
         String expectedMsg = MessagesProvider.getRequiredFieldError();
-        AuthVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, fieldType, expectedMsg, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, fieldType, expectedMsg, getDriver(), softAssert);
 
         softAssert.assertAll();
     }

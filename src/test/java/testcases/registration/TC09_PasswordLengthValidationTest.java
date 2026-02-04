@@ -2,14 +2,14 @@ package testcases.registration;
 
 import base.BaseTest;
 import helpers.providers.MessagesProvider;
-import helpers.verifications.AuthVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.enums.RegisterField;
 import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
 import pages.RegisterPage;
 import reports.ExtentReportManager;
 
-import static helpers.providers.AccountInfoTestDataGenerator.*;
+import static helpers.providers.UserAccountTestDataGenerator.*;
 
 public class TC09_PasswordLengthValidationTest extends BaseTest {
 
@@ -31,7 +31,8 @@ public class TC09_PasswordLengthValidationTest extends BaseTest {
        };
     }
 
-    @Test(dataProvider = "passwordLengthBoundaries", description = "Test Field Validation For Password Min And Max Length Limit")
+    @Test(description = "Test Field Validation For Password Min And Max Length Limit",
+            dataProvider = "passwordLengthBoundaries")
     public void testPasswordLengthBoundary(Integer lengthLimit, String validLengthPassword, String invalidLengthPassword, String expectedValidationMsg, String scenario) {
 
         ExtentReportManager.info("Testing password length boundary: " + scenario + " = " + lengthLimit);
@@ -44,13 +45,13 @@ public class TC09_PasswordLengthValidationTest extends BaseTest {
         registerPage.enterFieldInputAndBlur(RegisterField.PASSWORD, invalidLengthPassword);
 
         ExtentReportManager.info("Verify password validation message");
-        AuthVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.PASSWORD, expectedValidationMsg, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.PASSWORD, expectedValidationMsg, getDriver(), softAssert);
 
         ExtentReportManager.info("Update password to input with length at " + scenario);
         registerPage.updateFieldInputAndBlur(RegisterField.PASSWORD, validLengthPassword);
 
         ExtentReportManager.info("Verify password validation message is not displayed");
-        AuthVerificationHelper.verifyRegisterFieldValidationMsgNotDisplayed(registerPage, RegisterField.PASSWORD, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFieldValidationMsgNotDisplayed(registerPage, RegisterField.PASSWORD, getDriver(), softAssert);
 
         softAssert.assertAll();
     }

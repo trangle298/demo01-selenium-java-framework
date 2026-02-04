@@ -1,5 +1,7 @@
 package config;
 
+import io.github.cdimascio.dotenv.Dotenv;
+import model.enums.UserType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,85 +11,116 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
+import static config.urlConstants.BASE_URL_PATTERN;
+
 /**
- * Manages configuration properties from config.properties file.
- * Supports runtime overrides via system properties and environment variables.
+ * Centralized configuration manager supporting layered configuration from
+ * system properties, OS environment variables, .env files, and
+ * config.properties, with environment-aware resolution and typed accessors.
  */
 public class ConfigManager {
-    
-    // ---- Static Fields / Constants ---- //
-    private static final Logger logger = LogManager.getLogger(ConfigManager.class);
-    private static final Properties properties = new Properties();
 
-    // Default timeout values (used as fallback if config.properties is missing/invalid)
+    // ============================================================
+    // Constants & Fields
+    // ============================================================
+    private static final Logger LOG = LogManager.getLogger(ConfigManager.class);
+    private static final Properties properties = new Properties();
+    private static Dotenv dotenv;
+
+    private static final String DEFAULT_ENV = "qa";
+
     private static final int DEFAULT_EXPLICIT_WAIT = 10;
-    private static final int DEFAULT_SHORT_WAIT = 3;
+    private static final int DEFAULT_SHORT_WAIT = 2;
     private static final int DEFAULT_LONG_WAIT = 20;
 
-    // ---- Static Initialization ---- //
+    // Resolve environment ONCE
+    private static final String ENV = resolveEnv();
+
+    // ============================================================
+    // Static Initialization
+    // ============================================================
     static {
-        // Load properties from classpath once at class initialization so other methods can rely on them
         loadProperties();
-    }
-    
-    // ---- Public Methods ---- //
-    public static void loadProperties() {
-        try(InputStream input = ConfigManager.class.getClassLoader().getResourceAsStream("config.properties")) {
-            if(input == null) {
-                logger.warn("config.properties file not found on classpath");
-                return;
-            }
-            // Load as UTF-8 to support non-ASCII characters in config values
-            try (InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
-                properties.load(reader);
-            }
-            logger.info("Properties loaded successfully from config.properties");
-        } catch (IOException e) {
-            logger.error("Error loading properties file", e);
-        }
+        loadEnv();  // Must run before any method that accesses dotenv
     }
 
+    // ============================================================
+    // Environment Resolution
+    // ============================================================
+    private static String resolveEnv() {
+        String env = System.getProperty("env");
+        return isEmpty(env) ? DEFAULT_ENV : env.toLowerCase();
+    }
+
+    public static String getEnv() {
+        return ENV;
+    }
+
+    // ============================================================
+    // Core Property Resolution
+    // ============================================================
+    /**
+     * Resolves a configuration value using the following priority order:
+     *
+     * <ol>
+     *   <li>JVM System Property (-Dkey=value)</li>
+     *   <li>OS Environment Variable (key or KEY_WITH_UNDERSCORES)</li>
+     *   <li>Environment-specific .env file (loaded via dotenv)</li>
+     *   <li>config.properties (classpath)</li>
+     * </ol>
+     *
+     * @param key configuration key
+     * @return resolved value, or null if not found in any source
+     */
     public static String getProperty(String key) {
+        String value = System.getProperty(key);
+        if (!isEmpty(value)) return value;
+
+        value = System.getenv(key);
+        if (!isEmpty(value)) return value;
+
+        String envKey = key.toUpperCase().replace('.', '_');
+        value = System.getenv(envKey);
+        if (!isEmpty(value)) return value;
+
+        if (dotenv != null) {
+            value = dotenv.get(key);
+            if (!isEmpty(value)) return value;
+        }
+
         return properties.getProperty(key);
     }
 
-    /**
-     * Returns the resolved base URL to be used by tests/pages.
-     * Precedence (highest -> lowest):
-     * 1) JVM property -Dbase.url
-     * 2) Environment variables BASE_URL
-     * 3) config.properties entry base.url
-     * 4) hardcoded default
-     */
+    // ============================================================
+    // Public Config API
+    // ============================================================
+    public static String getRequiredProperty(String key) {
+        String value = getProperty(key);
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalStateException("Missing required config key: " + key);
+        }
+        return value;
+    }
+
     public static String getBaseUrl() {
-        String url = System.getProperty("base.url");
+        String url = getProperty("base.url");
+        if (!isEmpty(url)) return url;
 
-        if (isEmpty(url)) {
-            url = System.getenv("BASE_URL");
-        }
-
-        if (isEmpty(url)) {
-            url = properties.getProperty("base.url");
-        }
-
-        if (isEmpty(url)) {
-            url = "https://demo1.cybersoft.edu.vn";
-        }
-
-        return url;
+        return buildBaseUrlFromEnv();
     }
 
-    public static String getDefaultUserUsername() {
-        return getProperty("default.username");
+    public static String getUsername(UserType type) {
+        return getRequiredProperty(type.usernameKey());
     }
 
-    public static String getDefaultUserPassword() {
-        return getProperty("default.password");
+    public static String getPassword(UserType type) {
+        return getRequiredProperty(type.passwordKey());
     }
 
-    public static String getDefaultUserEmail() {
-        return getProperty("default.email");
+    public static String getEmail(UserType type) {
+        return getRequiredProperty(type.emailKey());
     }
+
 
     /**
      * Get the default explicit wait timeout in seconds.
@@ -119,7 +152,31 @@ public class ConfigManager {
         return getIntProperty("long.wait", DEFAULT_LONG_WAIT);
     }
 
-    // ---- Private Helper Methods ---- //
+    // ============================================================
+    // Specialized Builders
+    // ============================================================
+
+    /**
+     * Builds base URL from -Denv JVM property
+     */
+    private static String buildBaseUrlFromEnv() {
+        String env = getEnv();
+        String key = "env." + env + ".host";
+        String host = getProperty(key);
+
+        if (isEmpty(host)) {
+            throw new IllegalStateException(
+                    "Missing host mapping for environment '" + env +
+                            "'. Expected property: " + key
+            );
+        }
+        return String.format(BASE_URL_PATTERN, host);
+    }
+
+    // ============================================================
+    // Internal Helpers
+    // ============================================================
+
     /**
      * Get an integer property from config with a default fallback.
      * Supports system property override via -D{key}={value}
@@ -129,27 +186,15 @@ public class ConfigManager {
      * @return The property value as integer
      */
     private static int getIntProperty(String key, int defaultValue) {
-        // 1. Check system property first (allows runtime override via -D flag)
-        String systemValue = System.getProperty(key);
-        if (!isEmpty(systemValue)) {
+        String value = getProperty(key);
+
+        if (!isEmpty(value)) {
             try {
-                return Integer.parseInt(systemValue);
+                return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                logger.warn("Invalid integer value for system property '{}': {}", key, systemValue);
+                LOG.warn("Invalid integer value for property '{}': {}", key, value);
             }
         }
-
-        // 2. Check config.properties
-        String propertyValue = properties.getProperty(key);
-        if (!isEmpty(propertyValue)) {
-            try {
-                return Integer.parseInt(propertyValue);
-            } catch (NumberFormatException e) {
-                logger.warn("Invalid integer value for property '{}': {}", key, propertyValue);
-            }
-        }
-
-        // 3. Return default
         return defaultValue;
     }
 
@@ -163,4 +208,40 @@ public class ConfigManager {
         return s == null || s.trim().isEmpty();
     }
 
+    // ============================================================
+    // Loading Methods
+    // ============================================================
+
+    private static void loadProperties() {
+        try(InputStream input = ConfigManager.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if(input == null) {
+                LOG.warn("config.properties file not found on classpath");
+                return;
+            }
+            // Load as UTF-8 to support non-ASCII characters in config values
+            try (InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
+                properties.load(reader);
+            }
+            LOG.info("Properties loaded successfully from config.properties");
+        } catch (IOException e) {
+            LOG.error("Error loading properties file", e);
+        }
+    }
+
+    private static void loadEnv() {
+        String env = getEnv();
+        String envFileName = ".env." + env;
+
+        try {
+            dotenv = Dotenv.configure()
+                    .ignoreIfMissing()
+                    .filename(envFileName)
+                    .load();
+
+            LOG.info("Loaded configuration for environment: {}", env);
+
+        } catch (Exception e) {
+            LOG.error("Error loading .env file: {}", envFileName, e);
+        }
+    }
 }

@@ -10,12 +10,12 @@ import java.util.UUID;
 /**
  * Generates random test data for authentication and account forms using Faker library.
  */
-public class AccountInfoTestDataGenerator {
+public class UserAccountTestDataGenerator {
 
     private static final Faker faker = new Faker();
     private static final Integer passwordMinLength = 6;
     private static final Integer passwordMaxLength = 50;
-    private static final String emailDomain = "@example.com";
+    private static final String EMAIL_DOMAIN = "@example.com";
 
     // ---- Generate valid register/account data ----
     public static String generateUniqueUsername() {
@@ -30,10 +30,10 @@ public class AccountInfoTestDataGenerator {
     public static RegisterDataUI generateValidRegisterFormInputs() {
         UserAccount newUser = generateNewUserAccountInfo();
         RegisterDataUI inputs = new RegisterDataUI(
-                newUser.getTaiKhoan(),
-                newUser.getMatKhau(),
-                newUser.getMatKhau(),  // confirm password matches password
-                newUser.getHoTen(),
+                newUser.getUsername(),
+                newUser.getPassword(),
+                newUser.getPassword(),  // confirm password matches password
+                newUser.getFullName(),
                 newUser.getEmail()
         );
         return inputs;
@@ -42,11 +42,11 @@ public class AccountInfoTestDataGenerator {
     public static RegisterRequestPayload generateRegisterRequestPayload() {
         UserAccount newUser = generateNewUserAccountInfo();
         return RegisterRequestPayload.builder()
-                .taiKhoan(newUser.getTaiKhoan())
-                .matKhau(newUser.getMatKhau())
-                .hoTen(newUser.getHoTen())
+                .taiKhoan(newUser.getUsername())
+                .matKhau(newUser.getPassword())
+                .hoTen(newUser.getFullName())
                 .email(newUser.getEmail())
-                .soDt(newUser.getSoDt())
+                .soDt(newUser.getPhoneNumber())
                 .build();
     }
 
@@ -95,7 +95,7 @@ public class AccountInfoTestDataGenerator {
         return UserAccount.builder()
                 .taiKhoan(taiKhoan)
                 .hoTen(hoTen)
-                .email(taiKhoan + emailDomain)
+                .email(taiKhoan + EMAIL_DOMAIN)
                 .matKhau(matKhau)
                 .soDt(phoneNr)
                 .build();

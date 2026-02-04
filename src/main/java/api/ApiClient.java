@@ -39,6 +39,11 @@ public class ApiClient {
         return this;
     }
 
+    public ApiClient withAuthToken(String token) {
+        requestSpec.header("Authorization", "Bearer " + token);
+        return this;
+    }
+
     public Response get(String endpoint) {
         Response response = requestSpec.get(endpoint);
         initializeRequestSpec(); // Reset for next call

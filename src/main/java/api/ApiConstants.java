@@ -2,7 +2,7 @@ package api;
 
 /**
  * Centralized API path configuration for the movie booking system.
- * Contains base URL and path segments for all API operations.
+ * Contains base URI and path segments for all API operations.
  *
  * <p>Path segments are organized by API base path and are relative to the baseUri.
  * Service classes should use these constants with ApiClient which handles baseUri automatically.
@@ -15,17 +15,17 @@ package api;
  *   <li>QuanLyDatVe - Booking management (seat availability, bookings)</li>
  * </ul>
  */
-public class ApiEndpoints {
+public class ApiConstants {
 
-    /**
-     * Base URL for all API endpoints
-     */
-    public static final String baseUri = "https://movie0706.cybersoft.edu.vn";
+    // Base Api Uri pattern, %s will be replaced by host name mapped to environment
+    public static final String baseUri_PATTERN = "https://%s.cybersoft.edu.vn";
 
     // ===== QuanLyNguoiDung (User Management) =====
     private static final String USER_BASE = "/api/QuanLyNguoiDung";
     public static final String USER_REGISTER_ENDPOINT = USER_BASE + "/DangKy";
+    public static final String USER_LOGIN_ENDPOINT = USER_BASE + "/DangNhap";
     public static final String USER_SEARCH_ENDPOINT = USER_BASE + "/TimKiemNguoiDung";
+    public static final String USER_DELETE_ENDPOINT = USER_BASE + "/XoaNguoiDung";
 
     // ===== QuanLyPhim (Movie Management) =====
     private static final String MOVIE_BASE = "/api/QuanLyPhim";

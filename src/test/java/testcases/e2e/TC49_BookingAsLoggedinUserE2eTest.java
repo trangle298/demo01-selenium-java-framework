@@ -1,15 +1,13 @@
 package testcases.e2e;
 
-import api.services.UserService;
 import base.BaseTest;
 import helpers.actions.AuthActionHelper;
 import helpers.providers.BookingSampleProvider;
 import helpers.verifications.BookingVerificationHelper;
 import helpers.verifications.SoftAssertionHelper;
-import model.api.request.RegisterRequestPayload;
+import model.UserAccount;
 import model.api.response.ShowtimeBooking;
 import model.ui.OrderEntry;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 import pages.AccountPage;
@@ -21,7 +19,7 @@ import reports.ExtentReportManager;
 import java.util.List;
 
 import static helpers.actions.BookingActionHelper.bookSeatsAndCollectOrderDetails;
-import static helpers.providers.AccountInfoTestDataGenerator.generateRegisterRequestPayload;
+import static helpers.providers.UserAccountTestDataGenerator.generateRegisterRequestPayload;
 import static helpers.verifications.SoftAssertionHelper.verifySoftTrue;
 
 /**
@@ -30,27 +28,18 @@ import static helpers.verifications.SoftAssertionHelper.verifySoftTrue;
  */
 public class TC49_BookingAsLoggedinUserE2eTest extends BaseTest {
 
-    private RegisterRequestPayload registerPayload;
-
-    @BeforeMethod
-    public void setupMethod() {
-        // Create a new user
-        registerPayload = generateRegisterRequestPayload();
-        UserService userService = new UserService();
-        userService.sendRegisterRequest(registerPayload);
-    }
-
-    @Test
+    @Test(groups = "requiresUser")
     public void testCompleteLoggedinUserBookingFlow() throws Exception {
         ExtentReportManager.info("Testing User Booking Flow: Login → Browse → Select Showtime → Book → Verify");
+
         SoftAssert softAssert = new SoftAssert();
+        LoginPage loginPage = new LoginPage(getDriver());
 
         // ============================================
         // Step 1: Login and navigate to Homepage if not redirected
         // ============================================
-        // Login and navigate to homepage if needed
-        LoginPage loginPage = new LoginPage(getDriver());
-        AuthActionHelper.login(loginPage, registerPayload.getTaiKhoan(), registerPayload.getMatKhau());
+        UserAccount testUser = getTestUser();
+        AuthActionHelper.login(loginPage, testUser);
 
         HomePage homePage  = new HomePage(getDriver());
         boolean homepageRedirected = loginPage.isRedirectedToHomepage();
@@ -62,7 +51,7 @@ public class TC49_BookingAsLoggedinUserE2eTest extends BaseTest {
         // ============================================
         // Step 2: Apply filters and click Find Ticket button to navigate to booking page
         // ============================================
-        ExtentReportManager.info("User filter to navigate to a showtime booking page");
+        ExtentReportManager.info("Use filters to navigate to a showtime booking page");
         homePage.showtimeFilterDropdowns.waitForDropdownsToLoad();
 
         // Find a sample showtime with available seats (from API) to test
@@ -83,6 +72,7 @@ public class TC49_BookingAsLoggedinUserE2eTest extends BaseTest {
         // Step 3: Verify booking page displays correct showtime details
         // ============================================
         BookingPage bookingPage = new BookingPage(getDriver());
+        ExtentReportManager.info("Verify booking page displays correct showtime details");
         BookingVerificationHelper.verifyBookingPageDisplaysCorrectDetails(bookingPage, selectedShowtime, getDriver(), softAssert);
 
         // ============================================
@@ -103,10 +93,8 @@ public class TC49_BookingAsLoggedinUserE2eTest extends BaseTest {
         AccountPage accountPage = new AccountPage(getDriver());
         accountPage.navigateToAccountPage();
 
-        OrderEntry displayedOrderDetails = accountPage.getLastOrderEntryDetails();
-
-        SoftAssertionHelper.verifySoftEquals(displayedOrderDetails, bookingDetails,
-                "Order Details in Order History", getDriver(), softAssert);
+        ExtentReportManager.info("Verify order history displays new order entry with correct details");
+        BookingVerificationHelper.verifyEntryDetailsInOrderHistory(accountPage, bookingDetails, getDriver(), softAssert);
 
         softAssert.assertAll();
     }

@@ -1,9 +1,9 @@
 package testcases.registration;
 
 import base.BaseTest;
-import helpers.providers.AccountInfoTestDataGenerator;
+import helpers.providers.UserAccountTestDataGenerator;
 import helpers.providers.MessagesProvider;
-import helpers.verifications.AuthVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.enums.RegisterField;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -16,9 +16,9 @@ public class TC08_ConfirmPasswordMismatchTest extends BaseTest {
     @DataProvider(name = "mismatchPasswordScenarios")
     public Object[][] mismatchPasswordScenarios() {
         // Generate valid password as base (mixed characters by default)
-        String validPassword = AccountInfoTestDataGenerator.generateValidRegisterFormInputs().getPassword();
+        String validPassword = UserAccountTestDataGenerator.generateValidRegisterFormInputs().getPassword();
         // Generate mismatch password by removing or adding 1 character from original value
-        String differentPassword = AccountInfoTestDataGenerator.generateNewPassword(validPassword);
+        String differentPassword = UserAccountTestDataGenerator.generateNewPassword(validPassword);
         // Generate mismatch password by converting password to uppercase
         String differentCasingPassword = validPassword.toUpperCase();
 
@@ -42,7 +42,7 @@ public class TC08_ConfirmPasswordMismatchTest extends BaseTest {
 
         ExtentReportManager.info("Verify confirm password validation message");
         String expectedMsg = MessagesProvider.getPasswordMismatchError();
-        AuthVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.CONFIRM_PASSWORD, expectedMsg, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.CONFIRM_PASSWORD, expectedMsg, getDriver(), softAssert);
 
         softAssert.assertAll();
     }

@@ -19,6 +19,7 @@ public class DateTimeNormalizer {
     private static final List<DateTimeFormatter> KNOWN_FORMATS = List.of(
             DateTimeFormatter.ofPattern("dd/MM/yyyy ~ HH:mm"),  // UI format: 24/12/2021 ~ 13:35
             DateTimeFormatter.ofPattern("dd/MM/yyyy -HH:mm"),   // Alternate UI format: 17/10/2021 -08:10
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"),    // Alternate UI format: 17/10/2021 08:10
             DateTimeFormatter.ofPattern("dd-MM-yyyy ~ HH:mm"),  // Alternate UI format:  01-01-2019  ~  14:10
             DateTimeFormatter.ofPattern("dd-MM-yyyy | HH:mm"),  // Alternate UI format: 11-01-2026 | 16:48
             DateTimeFormatter.ISO_LOCAL_DATE_TIME,              // API format: 2021-10-17T08:43:00

@@ -2,9 +2,11 @@ package helpers.verifications;
 
 import helpers.providers.MessagesProvider;
 import model.api.response.ShowtimeBooking;
+import model.ui.OrderEntry;
 import model.ui.ShowtimeDetails;
 import org.openqa.selenium.WebDriver;
 import org.testng.asserts.SoftAssert;
+import pages.AccountPage;
 import pages.BookingPage;
 
 import java.util.List;
@@ -117,4 +119,24 @@ public class BookingVerificationHelper {
             bookingPage.confirmAndCloseDialog();
         }
     }
+
+    public static void verifyEntryDetailsInOrderHistory(AccountPage accountPage, OrderEntry expectedEntry, WebDriver driver, SoftAssert softAssert) {
+        OrderEntry displayedEntry = accountPage.getLastOrderEntryDetails();
+
+        verifySoftEquals(displayedEntry.getMovieName(), expectedEntry.getMovieName(),
+                "Movie name in Order History", driver, softAssert);
+
+        verifySoftEquals(displayedEntry.getCinemaBranchName(), expectedEntry.getCinemaBranchName(),
+                "Cinema branch name in Order History", driver, softAssert);
+
+        verifySoftEquals(displayedEntry.getTheaterName(), expectedEntry.getTheaterName(),
+                "Theater name in Order History", driver, softAssert);
+
+        verifySoftEquals(displayedEntry.getSeatNumbers(), expectedEntry.getSeatNumbers(),
+                "Seat number in Order History", driver, softAssert);
+
+        verifySoftEquals(displayedEntry.getPrice(), expectedEntry.getPrice(),
+                "Price in Order History", driver, softAssert);
+    }
+
 }

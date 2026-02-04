@@ -1,6 +1,6 @@
 package pages;
 
-import config.Routes;
+import config.urlConstants;
 import model.enums.BookingSummaryField;
 import model.ui.ShowtimeDetails;
 import org.openqa.selenium.By;
@@ -57,7 +57,7 @@ public class BookingPage extends CommonPage {
     // ---- Navigation ----
     public void navigateToShowtimePage(String showtimeId) {
         LOG.info("Navigate to Booking page for showtime: " + showtimeId);
-        driver.get(url(String.format(Routes.SHOWTIME, showtimeId)));
+        driver.get(url(String.format(urlConstants.SHOWTIME, showtimeId)));
     }
 
     // ---- Wait Helpers  ----
@@ -104,14 +104,13 @@ public class BookingPage extends CommonPage {
         dlgResponse.waitForDialogToBeInvisible();
     }
 
-    // Confirm booking and get purchase timestamp based on success dialog appearance
+    // Confirm booking and get purchase timestamp based on success dialog appearance -- will update next
     public String confirmBookingAndGetPurchaseTimestamp() {
         clickBookTicketsButton();
         dlgResponse.waitForDialogToBeVisible();
 
         LocalDateTime now = LocalDateTime.now();   // Get current date and time
         String datetimeString = normalize(now);
-        LOG.info("Purchase Timestamp: " + datetimeString);
 
         return datetimeString;
     }

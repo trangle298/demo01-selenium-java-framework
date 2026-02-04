@@ -1,7 +1,6 @@
 package testcases.browsing;
 
 import base.BaseTest;
-import helpers.actions.BrowsingActionHelper;
 import helpers.providers.BookingSampleProvider;
 import helpers.providers.MessagesProvider;
 import model.enums.MovieDropdownField;
@@ -46,7 +45,7 @@ public class TC37_DropdownMissingFilterAlertTest extends BaseTest {
 
         // Trigger missing filter alert by clicking Find Ticket button with one or more missing filters
         ExtentReportManager.info("Testing error alert for missing filter: " + missingFilter);
-        BrowsingActionHelper.triggerMissingFilterAlert(homePage, missingFilter, movie, cinema);
+        triggerMissingFilterAlert(homePage, missingFilter, movie, cinema);
 
         // Verify alert is displayed
         Assert.assertTrue(
@@ -59,5 +58,34 @@ public class TC37_DropdownMissingFilterAlertTest extends BaseTest {
         Assert.assertEquals(actualAlertText, expectedAlertText,
                 "Missing filter alert text does not match expected text. Actual: " + actualAlertText +
                         ", Expected: " + expectedAlertText);
+    }
+
+    // ---- Private Helper ---
+
+    /**
+     * Trigger missing filter alert by selecting filters before the specified missing one.
+     * Uses ordinal-based logic: movie (0) &lt; cinema (1) &lt; showtime (2).
+     *
+     * @param missingFilter The filter that should be missing (not selected)
+     * @param movieTitle Movie title to select (if needed)
+     * @param cinemaLocation Cinema location to select (if needed)
+     */
+    private static void triggerMissingFilterAlert(HomePage homePage, MovieDropdownField missingFilter, String movieTitle, String cinemaLocation) {
+        switch (missingFilter) {
+            case MOVIE:
+                homePage.showtimeFilterDropdowns.clickApplyFilterBtn();
+                break;
+            case CINEMA:
+                homePage.showtimeFilterDropdowns.selectMovieByMovieTitle(movieTitle);
+                homePage.showtimeFilterDropdowns.clickApplyFilterBtn();
+                break;
+            case SHOWTIME:
+                homePage.showtimeFilterDropdowns.selectMovieByMovieTitle(movieTitle);
+                homePage.showtimeFilterDropdowns.selectCinemaBranchByName(cinemaLocation);
+                homePage.showtimeFilterDropdowns.clickApplyFilterBtn();
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown missing filter: " + missingFilter);
+        }
     }
 }

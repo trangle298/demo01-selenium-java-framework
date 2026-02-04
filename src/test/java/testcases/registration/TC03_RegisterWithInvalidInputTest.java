@@ -1,10 +1,10 @@
 package testcases.registration;
 
 import base.BaseTest;
-import helpers.providers.AccountInfoTestDataGenerator;
+import helpers.providers.UserAccountTestDataGenerator;
 import helpers.providers.MessagesProvider;
 import helpers.verifications.AccountVerificationHelper;
-import helpers.verifications.AuthVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.enums.RegisterField;
 import model.ui.RegisterDataUI;
 import org.testng.annotations.Test;
@@ -12,7 +12,7 @@ import org.testng.asserts.SoftAssert;
 import pages.RegisterPage;
 import reports.ExtentReportManager;
 
-import static helpers.providers.AccountInfoTestDataGenerator.generateValidRegisterFormInputs;
+import static helpers.providers.UserAccountTestDataGenerator.generateValidRegisterFormInputs;
 
 public class TC03_RegisterWithInvalidInputTest extends BaseTest {
 
@@ -23,7 +23,7 @@ public class TC03_RegisterWithInvalidInputTest extends BaseTest {
 
         // Generate form input, double check that generated username is unique
         RegisterDataUI formInputs = generateValidRegisterFormInputs();
-        String shortPassword = AccountInfoTestDataGenerator.generateShortPassword();
+        String shortPassword = UserAccountTestDataGenerator.generateShortPassword();
         formInputs.setPassword(shortPassword);
         formInputs.setConfirmPassword(shortPassword);
         AccountVerificationHelper.verifyAccountExistence(formInputs.getUsername(), false, softAssert);
@@ -38,7 +38,7 @@ public class TC03_RegisterWithInvalidInputTest extends BaseTest {
         // Verify validation error message
         ExtentReportManager.info("Verify validation error message");
         String expectedMsg = MessagesProvider.getPasswordMinLengthError();
-        AuthVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.PASSWORD, expectedMsg, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterFieldValidationMsg(registerPage, RegisterField.PASSWORD, expectedMsg, getDriver(), softAssert);
 
         // Verify account (based on username) not created in backend
         ExtentReportManager.info("Verify account is not created in backend");

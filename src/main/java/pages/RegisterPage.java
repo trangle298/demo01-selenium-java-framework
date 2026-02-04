@@ -1,6 +1,6 @@
 package pages;
 
-import config.Routes;
+import config.urlConstants;
 import model.enums.RegisterField;
 import model.ui.RegisterDataUI;
 import org.openqa.selenium.By;
@@ -45,7 +45,7 @@ public class RegisterPage extends CommonPage {
     // ---- Navigation ----
     public void navigateToRegisterPage() {
         LOG.info("Navigate to Register page");
-        driver.get(url(Routes.REGISTER));
+        driver.get(url(urlConstants.REGISTER));
     }
     
     // ---- Form interactions: fill fields, click buttons ----

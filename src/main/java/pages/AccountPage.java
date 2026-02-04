@@ -1,6 +1,6 @@
 package pages;
 
-import config.Routes;
+import config.urlConstants;
 import model.UserAccount;
 import model.enums.AccountDataField;
 import model.enums.UserType;
@@ -57,7 +57,7 @@ public class AccountPage extends CommonPage {
     // ---- Navigation ----
     public void navigateToAccountPage() {
         LOG.info("Navigate to Account Page");
-        driver.get(url(Routes.ACCOUNT));
+        driver.get(url(urlConstants.ACCOUNT));
     }
 
     // ---- Wait ----

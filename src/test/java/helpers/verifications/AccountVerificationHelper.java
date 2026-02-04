@@ -6,7 +6,6 @@ import helpers.providers.MessagesProvider;
 import model.UserAccount;
 import model.enums.AccountDataField;
 import model.enums.UserType;
-import model.api.request.RegisterRequestPayload;
 import model.ui.RegisterDataUI;
 import org.openqa.selenium.WebDriver;
 import org.testng.asserts.SoftAssert;
@@ -28,6 +27,7 @@ public class AccountVerificationHelper {
     // ================================================
     // ---- Verify Account existence, account info ----
     // ================================================
+
     /**
      * Verify that a user account exists or does not exist in the backend
      *
@@ -52,55 +52,27 @@ public class AccountVerificationHelper {
      * @param driver       WebDriver instance for screenshot capture
      * @param softAssert   The SoftAssert instance for accumulating assertions
      */
-    public static void verifyAccountDataMatchesRegistration(
+    public static void verifyAccountDataMatchesUIRegistration(
             RegisterDataUI expectedData,
             UserAccount actualData,
             String source,
             WebDriver driver,
             SoftAssert softAssert
     ) {
-        verifySoftEquals(actualData.getTaiKhoan(), expectedData.getUsername(),
+        verifySoftEquals(actualData.getUsername(), expectedData.getUsername(),
                 "Username in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getHoTen(), expectedData.getFullName(),
+        verifySoftEquals(actualData.getFullName(), expectedData.getFullName(),
                 "Full name in " + source, driver, softAssert);
         verifySoftEquals(actualData.getEmail(), expectedData.getEmail(),
                 "Email in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getMatKhau(), expectedData.getPassword(),
+        verifySoftEquals(actualData.getPassword(), expectedData.getPassword(),
                 "Password in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getMaLoaiNguoiDung(), UserType.CUSTOMER.getLabel(),
-                "User Type in " + source, driver, softAssert);
-    }
-
-    /**
-     * Verify that account details (fetched from UI or API) matches expected registration data from API request payload
-     *
-     * @param expectedData The payload data used for API POST request
-     * @param actualData   The user account data from UI (AccountPage.getAccountData()) or API (UserService.getUserDetails())
-     * @param source       Description of actualData source (e.g., "Backend API", "Account Page")
-     * @param driver       WebDriver instance for screenshot capture
-     * @param softAssert   The SoftAssert instance for accumulating assertions
-     */
-    public static void verifyAccountDataMatchesRegistration(
-            RegisterRequestPayload expectedData,
-            UserAccount actualData,
-            String source,
-            WebDriver driver,
-            SoftAssert softAssert
-    ) {
-        verifySoftEquals(actualData.getTaiKhoan(), expectedData.getTaiKhoan(),
-                "Username in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getHoTen(), expectedData.getHoTen(),
-                "Full name in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getEmail(), expectedData.getEmail(),
-                "Email in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getMatKhau(), expectedData.getMatKhau(),
-                "Password in " + source, driver, softAssert);
-        verifySoftEquals(actualData.getMaLoaiNguoiDung(), expectedData.getMaLoaiNguoiDung(),
+        verifySoftEquals(actualData.getUserType(), UserType.CUSTOMER.getLabel(),
                 "User Type in " + source, driver, softAssert);
     }
 
     // ==========================================
-    // ---- Verify update success & failure ----
+    // ---- Verify account info update success & failure ----
     // ==========================================
     /**
      * Verify that the account info: name, email, phone is updated correctly
@@ -129,11 +101,11 @@ public class AccountVerificationHelper {
         accountPage.refreshPage();
         UserAccount uiAccount = accountPage.getAccountData();
 
-        verifySoftEquals(uiAccount.getHoTen(), updatedFullName,
+        verifySoftEquals(uiAccount.getFullName(), updatedFullName,
                 "Account full name after update", driver, softAssert);
         verifySoftEquals(uiAccount.getEmail(), updatedEmail,
                 "Account email after update", driver, softAssert);
-        verifySoftEquals(uiAccount.getSoDt(), updatedPhoneNr,
+        verifySoftEquals(uiAccount.getPhoneNumber(), updatedPhoneNr,
                 "Account phone number after update", driver, softAssert);
     }
 
@@ -153,11 +125,11 @@ public class AccountVerificationHelper {
             String updatedPhoneNr,
             SoftAssert softAssert
     ) {
-        verifySoftEquals(apiUserAccount.getHoTen(), updatedFullName,
+        verifySoftEquals(apiUserAccount.getFullName(), updatedFullName,
                 "Account full name in backend", softAssert);
         verifySoftEquals(apiUserAccount.getEmail(), updatedEmail,
                 "Account email in backend", softAssert);
-        verifySoftEquals(apiUserAccount.getSoDt(), updatedPhoneNr,
+        verifySoftEquals(apiUserAccount.getPhoneNumber(), updatedPhoneNr,
                 "Account phone number in backend", softAssert);
     }
 
@@ -202,7 +174,7 @@ public class AccountVerificationHelper {
             AccountPage accountPage,
             AccountDataField errorField,
             String expectedMsg,
-            RegisterRequestPayload originalUserData,
+            UserAccount originalUserData,
             WebDriver driver,
             SoftAssert softAssert
     ) {
@@ -220,7 +192,7 @@ public class AccountVerificationHelper {
 
     public static void verifyUpdateFailsDueToExistingEmailError(
             AccountPage accountPage,
-            RegisterRequestPayload originalUserData,
+            UserAccount originalUserData,
             WebDriver driver,
             SoftAssert softAssert
     ) {
@@ -255,16 +227,12 @@ public class AccountVerificationHelper {
         }
     }
 
-    private static void verifyDisplayedUserInfoRemainUnchanged(AccountPage accountPage, RegisterRequestPayload originalUserData, WebDriver driver, SoftAssert softAssert ) {
+    private static void verifyDisplayedUserInfoRemainUnchanged(AccountPage accountPage, UserAccount originalUserData, WebDriver driver, SoftAssert softAssert ) {
         ExtentReportManager.info("Refresh page and Verify account page displays original values");
         accountPage.refreshPage();
         UserAccount uiAccount = accountPage.getAccountData();
 
-        verifySoftEquals(uiAccount.getHoTen(), originalUserData.getHoTen(),
-                "Account full remains unchanged", driver, softAssert);
-        verifySoftEquals(uiAccount.getEmail(), originalUserData.getEmail(),
-                "Account email remains unchanged", driver, softAssert);
-        verifySoftEquals(uiAccount.getSoDt(), originalUserData.getSoDt(),
-                "Account phone number remains unchanged", driver, softAssert);
+        verifySoftEquals(uiAccount, originalUserData,
+                "Account page displayed user info", driver, softAssert);
     }
 }

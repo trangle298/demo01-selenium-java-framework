@@ -2,14 +2,14 @@ package testcases.registration;
 
 import base.BaseTest;
 import helpers.verifications.AccountVerificationHelper;
+import helpers.verifications.RegisterVerificationHelper;
 import model.ui.RegisterDataUI;
 import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
 import pages.RegisterPage;
 import reports.ExtentReportManager;
 
-import static helpers.providers.AccountInfoTestDataGenerator.*;
-import static helpers.verifications.AuthVerificationHelper.verifyRegisterSuccessMsg;
+import static helpers.providers.UserAccountTestDataGenerator.*;
 
 public class TC01_RegisterWithValidInputsTest extends BaseTest {
 
@@ -32,7 +32,7 @@ public class TC01_RegisterWithValidInputsTest extends BaseTest {
 
         // Verify success message
         ExtentReportManager.info("Verify Register Success message");
-        verifyRegisterSuccessMsg(registerPage, getDriver(), softAssert);
+        RegisterVerificationHelper.verifyRegisterSuccessMsg(registerPage, getDriver(), softAssert);
 
         // Verify account is created
         ExtentReportManager.info("Verify account is created in backend");
