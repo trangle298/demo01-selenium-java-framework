@@ -16,12 +16,40 @@ public class ChromeDriverManager extends DriverManager {
     public WebDriver createDriver() {
 
         boolean eager = Boolean.parseBoolean(ConfigManager.getProperty("eagerPageLoadStrategy"));
+        boolean headless = isHeadless();
 
         ChromeOptions options = new ChromeOptions();
         options.setPageLoadStrategy(eager ? PageLoadStrategy.EAGER : PageLoadStrategy.NORMAL);
-        options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+
+        if (headless) {
+            options.addArguments(
+                    "--headless=new",
+                    "--window-size=1920,1080",
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage"
+            );
+        } else {
+            options.addArguments("--start-maximized");
+        }
+
+        options.setExperimentalOption("excludeSwitches",
+                new String[]{"enable-automation"});
         options.setExperimentalOption("useAutomationExtension", false);
 
-       return new ChromeDriver(options);
+        return new ChromeDriver(options);
+    }
+
+
+    // ---- Private Helper Methods ----
+    private boolean isHeadless() {
+        String systemValue = System.getProperty("headless");
+
+        if (systemValue != null) {
+            return Boolean.parseBoolean(systemValue);
+        }
+
+        String configValue = ConfigManager.getProperty("headless");
+        return configValue != null && Boolean.parseBoolean(configValue);
     }
 }

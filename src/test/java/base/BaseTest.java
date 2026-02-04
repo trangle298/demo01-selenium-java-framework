@@ -79,11 +79,8 @@ public class BaseTest {
 
     private void initializeWebDriver(String browserName) {
         driver.set(DriverManagerFactory.getDriverManager(browserName).createDriver());
-        getDriver().manage().window().setSize(new Dimension(1920, 1080));
-
         LOG.info("Thread: " + Thread.currentThread().threadId() +
                 " - [setUp] - WebDriver Instance: " + getDriver());
-        LOG.info("WebDriver initialized with 1920x1080 resolution");
     }
 
     private void cleanupWebDriver() {
