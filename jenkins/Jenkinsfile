@@ -3,7 +3,7 @@ pipeline {
 
     triggers {
         parameterizedCron('''
-            30 11 * * * %SUITE=smoke;%GIT_BRANCH=main
+            30 11 * * * %SUITE=smoke;GIT_BRANCH=main
         ''')
     }
 
@@ -84,8 +84,8 @@ pipeline {
                     echo " ===> Publishing test results..."
                     archiveArtifacts artifacts: 'test-output/**', followSymlinks: false
                     publishHTML([allowMissing: false,
-                                alwaysLinkToLastBuild: false,
-                                icon: '', keepAll: false,
+                                alwaysLinkToLastBuild: true,
+                                icon: '', keepAll: true,
                                 reportDir: 'test-output',
                                 reportFiles: 'ExtentReport.html',
                                 reportName: 'Extent HTML Report',
