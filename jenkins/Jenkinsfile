@@ -84,7 +84,7 @@ pipeline {
                     echo " ===> Publishing test results..."
                     archiveArtifacts artifacts: 'test-output/**', followSymlinks: false
                     publishHTML([allowMissing: false,
-                                alwaysLinkToLastBuild: false,F
+                                alwaysLinkToLastBuild: false,
                                 icon: '', keepAll: false,
                                 reportDir: 'test-output',
                                 reportFiles: 'ExtentReport.html',
