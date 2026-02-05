@@ -43,8 +43,6 @@ public class BaseTest {
         initializeWebDriver(resolveBrowser());
         ExtentReportManager.createTest(method.getName());
         setupTestUserIfNeeded(method);
-
-        LOG.info("Starting test: " + method.getName());
     }
 
     @AfterMethod(alwaysRun = true)

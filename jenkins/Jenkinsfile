@@ -1,0 +1,98 @@
+pipeline {
+    agent any
+
+    triggers {
+        parameterizedCron('''
+            30 11 * * * %SUITE=smoke;%GIT_BRANCH=main
+        ''')
+    }
+
+    parameters {
+        choice(name: 'ENVIRONMENT',
+                choices: 'qa\ndev\nstaging\nproduction\nperf',
+                description: 'Required - Select environment'
+        )
+        choice(name: 'SUITE',
+                choices: 'smoke\nregression\ne2e\nuserManagement\nbrowsing\nbooking',
+                description: 'Required: Select suite to run'
+        )
+        string(name: 'GIT_BRANCH',
+                defaultValue: 'main',
+                description: 'Required: Enter Git Branch name to clone code'
+        )
+        choice(name: 'RUN_ON',
+                choices: 'Grid\nLocal\nPerfecto\nAWS',
+                description: 'Required: Select where to run'
+        )
+        choice(name: 'BROWSER_NAME',
+                choices: 'Chrome\nFirefox\nEdge\nSafari',
+                description: 'Required: Select browser to run'
+        )
+        choice(name: 'PLATFORM',
+                choices: 'Windows 10\nMac OS Tahoe 26.1\nAndroid Google Pixel 4\nApple Iphone 11',
+                description: 'Required: Select platform to run'
+        )
+        string(name: 'TO_RECIPIENT',
+                defaultValue: 'trang.dl298@gmail.com',
+                description: 'Optional: Enter email address to recievie automation result'
+        )
+        choice(name: 'PARALLEL_THREAD',
+                choices: '1\n2\n3\n4\n5',
+                description: 'Select number of threads to run parallel. Default is 1'
+        )
+        string(name: 'GROUP',
+                defaultValue: '',
+                description: 'Optional: If suite is not specified, filter groups to run (Example: -Plogin, -Phigh,...)\nIt is possible to combine groups, separated by comma'
+        )
+        string(name: 'TEST_PLAN_ID',
+                defaultValue: '',
+                description: 'Optional: Enter test plan ID to mark automation result on TestRail'
+        )
+        choice(name: 'RETRY_FAILED_TESTS',
+                choices: 'No\nYes',
+                description: 'Select Yes if you want to retry failed tests'
+        )
+        choice(name: 'LOG_LEVEL',
+                choices: 'INFO\nDEBUG',
+                description: 'Select log level to show in console output. The default level is INFO'
+        )
+    }
+
+    stages {
+        stage('Setup') {
+            steps {
+                script {
+                    currentBuild.displayName = "#${currentBuild.number} ${params.SUITE} ${params.ENVIRONMENT} ${params.GIT_BRANCH}"
+                    println "Build: #${currentBuild.number} ${params.SUITE} ${params.GIT_BRANCH}"
+                    println "Job: ${JOB_NAME}"
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', credentialsId: 'git-cred-key', url: 'git@github.com:trangle298/demo01-selenium-java-framework.git'
+            }
+        }
+
+        stage("Test") {
+            steps {
+                bat ".\\gradlew ${params.SUITE}"
+            }
+            post {
+                always {
+                    echo " ===> Publishing test results..."
+                    archiveArtifacts artifacts: 'test-output/**', followSymlinks: false
+                    publishHTML([allowMissing: false,
+                                alwaysLinkToLastBuild: false,F
+                                icon: '', keepAll: false,
+                                reportDir: 'test-output',
+                                reportFiles: 'ExtentReport.html',
+                                reportName: 'Extent HTML Report',
+                                reportTitles: '',
+                                useWrapperFileDirectly: true])
+                }
+            }
+        }
+    }
+}

@@ -45,7 +45,7 @@ public class UserService {
         }
 
         if (users == null || users.isEmpty()) {
-            LOG.warn("No user found for username " + username);
+            LOG.info("No user found for username " + username);
             return null;
         }
 
