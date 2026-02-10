@@ -2,6 +2,10 @@ pipeline {
     agent any
 
     triggers {
+        // Check GitHub for changes every 2 minutes and trigger build if found
+        pollSCM('H/2 * * * *')
+        
+        // Scheduled smoke test every Thursday at 8 AM
         parameterizedCron('''
             H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main
         ''')
@@ -93,7 +97,7 @@ pipeline {
                     echo "===> Executing test... "
                     
                     // Build the gradle command based on parameters
-                    def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME}"
+                    def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -Dheadless=true"
                     
                     // Add parallel execution if thread count > 1
                     if (params.PARALLEL_THREAD.toInteger() > 1) {

@@ -73,6 +73,7 @@ tasks.withType(Test) {
     systemProperty 'runOn', System.properties['runOn']
     systemProperty 'platform', System.properties['platform']
     systemProperty 'browser', System.properties['browser']
+    systemProperty 'headless', System.properties['headless']
 
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
