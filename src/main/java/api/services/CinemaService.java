@@ -31,7 +31,7 @@ public class CinemaService {
                 .getAndDeserialize(ApiConstants.CINEMA_BRANCH_ENDPOINT, new TypeRef<>() {});
     }
 
-    public List<CinemaSystemSchedule> getShowtimesByCinemaSystem(String cinemaId) {
+    public List<CinemaSystemSchedule> getShowtimesForCinemaSystem(String cinemaId) {
         return apiClient.withQueryParam("maHeThongRap", cinemaId)
                 .getAndDeserialize(ApiConstants.CINEMA_SHOWTIME_ENDPOINT, new TypeRef<>() {});
     }

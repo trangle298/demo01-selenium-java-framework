@@ -8,7 +8,8 @@ import config.ConfigManager;
 
 /**
  * Chrome browser driver manager.
- * Configures ChromeDriver with options for page load strategy and automation detection.
+ * Configures ChromeDriver with options for page load strategy and automation
+ * detection.
  */
 public class ChromeDriverManager extends DriverManager {
 
@@ -23,23 +24,21 @@ public class ChromeDriverManager extends DriverManager {
 
         if (headless) {
             options.addArguments(
-                    "--headless=new",
-                    "--window-size=1920,1080",
+                    "--headless=new", // Use new headless mode (Chrome 109+)
+                    "--window-size=1920,1080", // Set viewport size
                     "--disable-gpu",
                     "--no-sandbox",
-                    "--disable-dev-shm-usage"
-            );
+                    "--disable-dev-shm-usage");
         } else {
             options.addArguments("--start-maximized");
         }
 
         options.setExperimentalOption("excludeSwitches",
-                new String[]{"enable-automation"});
+                new String[] { "enable-automation" });
         options.setExperimentalOption("useAutomationExtension", false);
 
         return new ChromeDriver(options);
     }
-
 
     // ---- Private Helper Methods ----
     private boolean isHeadless() {

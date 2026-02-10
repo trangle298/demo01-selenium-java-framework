@@ -3,8 +3,13 @@ pipeline {
 
     triggers {
         parameterizedCron('''
-            30 11 * * * %SUITE=smoke;GIT_BRANCH=main
+            H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main
         ''')
+    }
+
+     options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
     }
 
     parameters {
@@ -65,19 +70,54 @@ pipeline {
                     currentBuild.displayName = "#${currentBuild.number} ${params.SUITE} ${params.ENVIRONMENT} ${params.GIT_BRANCH}"
                     println "Build: #${currentBuild.number} ${params.SUITE} ${params.GIT_BRANCH}"
                     println "Job: ${JOB_NAME}"
+                    echo "Build started at ${new Date(currentBuild.startTimeInMillis)}"
                 }
             }
         }
 
         stage('Checkout') {
             steps {
+                echo "===> Checking out ${params.GIT_BRANCH}"
                 git branch: 'main', credentialsId: 'git-cred-key', url: 'git@github.com:trangle298/demo01-selenium-java-framework.git'
+            }
+            post {
+                failure {
+                    echo "Checkout failed!"
+                }
             }
         }
 
-        stage("Test") {
+        stage('Test') {
             steps {
-                bat ".\\gradlew ${params.SUITE}"
+                script {
+                    echo "===> Executing test... "
+                    
+                    // Build the gradle command based on parameters
+                    def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME}"
+                    
+                    // Add parallel execution if thread count > 1
+                    if (params.PARALLEL_THREAD.toInteger() > 1) {
+                        gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
+                    }
+                    
+                    // Add group filter if specified
+                    if (params.GROUP?.trim()) {
+                        gradleCmd += " -Dgroups=${params.GROUP}"
+                    }
+
+                    // Add log level
+                    if (params.LOG_LEVEL == 'DEBUG') {
+                        gradleCmd += " --debug"
+                    }
+                    
+                    // Add retry flag if requested (handled by Gradle Test Retry Plugin)
+                    if (params.RETRY_FAILED_TESTS == 'Yes') {
+                        gradleCmd += " -Dretry.enabled=true"
+                    }
+                    
+                    echo "Executing: ${gradleCmd}"
+                    bat gradleCmd
+                }
             }
             post {
                 always {
@@ -91,6 +131,39 @@ pipeline {
                                 reportName: 'Extent HTML Report',
                                 reportTitles: '',
                                 useWrapperFileDirectly: true])
+                }
+                failure {
+                    echo "Test execution failed!"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo "===> Build Status: ${currentBuild.currentResult}"
+            echo "===> Build Duration: ${currentBuild.durationString}"
+            
+            script {
+                if (params.TO_RECIPIENT?.trim()) {
+                    def status = currentBuild.currentResult
+                    def emoji = status == 'SUCCESS' ? '✅' : '❌'
+                    
+                    emailext(
+                        to: "${params.TO_RECIPIENT}",
+                        subject: "${emoji} Jenkins Build ${status} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                        body: """
+                            <h2>Build ${status}</h2>
+                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                            <p><strong>Build Number:</strong> ${env.BUILD_NUMBER}</p>
+                            <p><strong>Suite:</strong> ${params.SUITE}</p>
+                            <p><strong>Environment:</strong> ${params.ENVIRONMENT}</p>
+                            <p><strong>Browser:</strong> ${params.BROWSER_NAME}</p>
+                            <p><strong>Branch:</strong> ${params.GIT_BRANCH}</p>
+                            <p><strong>Duration:</strong> ${currentBuild.durationString}</p>
+                            <p><a href="${env.BUILD_URL}">View Build</a> | <a href="${env.BUILD_URL}Extent_20HTML_20Report">View Report</a></p>
+                        """,
+                        mimeType: 'text/html'
+                    )
                 }
             }
         }

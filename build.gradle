@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'org.gradle.test-retry' version '1.5.10'
 }
 
 group = 'com.automation'
@@ -69,6 +70,9 @@ dependencies {
 
 tasks.withType(Test) {
     systemProperty 'env', System.properties['env']
+    systemProperty 'runOn', System.properties['runOn']
+    systemProperty 'platform', System.properties['platform']
+    systemProperty 'browser', System.properties['browser']
 
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
@@ -81,6 +85,13 @@ tasks.withType(Test) {
                 includeGroups groups.split(',') // Supports multiple comma-separated groups
             }
         }
+    }
+
+    // Retry failed tests if enabled via Jenkins parameter (-Dretry.enabled=true)
+    retry {
+        maxRetries = System.getProperty('retry.enabled', 'false') == 'true' ? 1 : 0
+        maxFailures = 20
+        failOnPassedAfterRetry = false
     }
 
     testLogging {

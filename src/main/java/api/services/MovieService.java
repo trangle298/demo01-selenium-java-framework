@@ -25,7 +25,7 @@ public class MovieService {
 
     public Movie getMovieInfoById(String movieId) {
         return this.apiClient
-                .withQueryParam("movieId", movieId)
+                .withQueryParam("tenPhim", movieId)
                 .getAndDeserialize(ApiConstants.MOVIE_LIST_ENDPOINT, Movie.class);
     }
 
