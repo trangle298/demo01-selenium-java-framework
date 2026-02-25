@@ -40,8 +40,7 @@ pipeline {
                 description: 'Required: Select platform to run'
         )
         string(name: 'TO_RECIPIENT',
-                defaultValue: 'trang.dl298@gmail.com',
-                description: 'Optional: Enter email address to recievie automation result'
+                description: 'Optional: Enter email address to receive automation result'
         )
         choice(name: 'PARALLEL_THREAD',
                 choices: '1\n2\n3\n4\n5',
@@ -119,7 +118,7 @@ pipeline {
                         gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
 
                         if (params.SUITE != 'none') {
-                            gradleCmd += " ${params.SUITE}"
+                            gradleCmd += " -Dsuite=${params.SUITE}"
                         }
 
                         // Add parallel execution if thread count > 1
