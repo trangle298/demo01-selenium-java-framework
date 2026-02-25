@@ -118,7 +118,10 @@ pipeline {
                         gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
 
                         if (params.SUITE != 'none') {
-                            gradleCmd += " -Dsuite=${params.SUITE}"
+                            gradleCmd += " testSuite -Dsuite=${params.SUITE}"
+                        } else {
+                            // No suite selected — run all tests filtered by group
+                            gradleCmd += " test -Dgroups=${params.GROUP}"
                         }
 
                         // Add parallel execution if thread count > 1
@@ -126,11 +129,6 @@ pipeline {
                             gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
                         }
                         
-                        // Add group filter if specified
-                        if (params.GROUP?.trim()) {
-                            gradleCmd += " -Dgroups=${params.GROUP}"
-                        }
-
                         // Add log level
                         if (params.LOG_LEVEL == 'DEBUG') {
                             gradleCmd += " --debug"
