@@ -20,7 +20,7 @@ pipeline {
                 description: 'Required - Select environment'
         )
         choice(name: 'SUITE',
-                choices: 'smoke\nregression\ne2e\nuserManagement\nbrowsing\nbooking',
+                choices: 'none\nsmoke\nregression\ne2e\nuserManagement\nbrowsing\nbooking',
                 description: 'Required: Select suite to run'
         )
         string(name: 'GIT_BRANCH',
@@ -66,12 +66,23 @@ pipeline {
     }
 
     stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (params.SUITE == 'none' && !params.GROUP?.trim()) {
+                        error("❌ Build aborted: You must select a SUITE or specify a GROUP filter. Both cannot be empty.")
+                    }
+                }
+            }
+        }
+
         stage('Setup') {
             steps {
                 script {
-                    currentBuild.displayName = "#${currentBuild.number} ${params.SUITE} ${params.ENVIRONMENT} ${params.GIT_BRANCH}"
-                    println "Build: #${currentBuild.number} ${params.SUITE} ${params.GIT_BRANCH}"
-                    println "Job: ${JOB_NAME}"
+                    def runLabel = params.SUITE != 'none' ? params.SUITE : "group:${params.GROUP}"
+                    currentBuild.displayName = "#${currentBuild.number} ${runLabel} ${params.ENVIRONMENT} ${params.GIT_BRANCH}"
+                    echo "Build: #${currentBuild.number} ${runLabel} ${params.GIT_BRANCH}"
+                    echo "Job: ${JOB_NAME}"
                     echo "Build started at ${new Date(currentBuild.startTimeInMillis)}"
                 }
             }
@@ -101,11 +112,15 @@ pipeline {
                         string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_EMAIL", variable: 'BASIC_EMAIL')
                     ]) {
                         // Build gradle command
-                        def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -Dheadless=true"
+                        def gradleCmd = ".\\gradlew -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dheadless=true"
                         
                         // Add credentials via environment variables (secure)
                         gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\""
                         gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
+
+                        if (params.SUITE != 'none') {
+                            gradleCmd += " ${params.SUITE}"
+                        }
 
                         // Add parallel execution if thread count > 1
                         if (params.PARALLEL_THREAD.toInteger() > 1) {

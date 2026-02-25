@@ -32,7 +32,7 @@ public class AuthService {
                     .jsonPath()
                     .getString("accessToken");
 
-            LOG.info("New Admin Token" + cachedAdminToken);
+            LOG.info("New Admin Token: " + cachedAdminToken);
         }
         return cachedAdminToken;
     }

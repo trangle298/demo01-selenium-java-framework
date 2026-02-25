@@ -113,44 +113,6 @@ tasks.register('testSuite', Test) {
     }
 }
 
-tasks.register('smoke', Test) {
-    useTestNG {
-        suites "src/test/resources/smoke.xml"
-    }
-}
-
-// Lam 1 cai testSuite, truyen vo dynamic  e.g. regression, if testSuite == null -> -Pgroups = ....
-
-tasks.register('regression', Test) {
-    useTestNG {
-        suites "src/test/resources/regression.xml"
-    }
-}
-
-tasks.register('userManagement', Test) {
-    useTestNG {
-        suites "src/test/resources/user-management.xml"
-    }
-}
-
-tasks.register('browsing', Test) {
-    useTestNG {
-        suites "src/test/resources/browsing.xml"
-    }
-}
-
-tasks.register('booking', Test) {
-    useTestNG {
-        suites "src/test/resources/booking.xml"
-    }
-}
-
-tasks.register('e2e', Test) {
-    useTestNG {
-        suites "src/test/resources/e2e.xml"
-    }
-}
-
 // JavaDoc generation task - creates HTML documentation from JavaDoc comments
 // BEST PRACTICE: Only document framework code (src/main/java) + reusable test helpers
 // Excludes:
