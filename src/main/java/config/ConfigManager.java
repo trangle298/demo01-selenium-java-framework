@@ -112,7 +112,7 @@ public class ConfigManager {
     public static String getRequiredEnvProperty(String key) {
         String value = getEnvProperty(key);
         if (isEmpty(value)) {
-            throw new IllegalStateException("Missing required config key: " + key);
+            throw new IllegalStateException("Missing required env key: " + key);
         }
         return value;
     }

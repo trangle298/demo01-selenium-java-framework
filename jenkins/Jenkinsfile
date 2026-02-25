@@ -90,7 +90,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "===> Checking out ${params.GIT_BRANCH}"
-                git branch: 'main', credentialsId: 'git-cred-key', url: 'git@github.com:trangle298/demo01-selenium-java-framework.git'
+                git branch: "${params.GIT_BRANCH}", credentialsId: 'git-cred-key', url: 'git@github.com:trangle298/demo01-selenium-java-framework.git'
             }
             post {
                 failure {
@@ -110,25 +110,29 @@ pipeline {
                         string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_PASSWORD", variable: 'BASIC_PASSWORD'),
                         string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_EMAIL", variable: 'BASIC_EMAIL')
                     ]) {
-                        // Build gradle command
-                        def gradleCmd = ".\\gradlew -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dheadless=true"
+                         // Build gradle command
+                        def gradleCmd = ".\\gradlew"
                         
-                        // Add credentials via environment variables (secure)
-                        gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\""
-                        gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
-
                         if (params.SUITE != 'none') {
-                            gradleCmd += " testSuite -Dsuite=${params.SUITE}"
+                             gradleCmd += " testSuite -Dsuite=${params.SUITE}"
                         } else {
-                            // No suite selected — run all tests filtered by group
-                            gradleCmd += " test -Dgroups=${params.GROUP}"
+                             gradleCmd += " test"
                         }
-
+                        
+                        // Add required params
+                        gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dheadless=true"
+                        
                         // Add parallel execution if thread count > 1
                         if (params.PARALLEL_THREAD.toInteger() > 1) {
                             gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
                         }
                         
+                        // Add credentials via environment variables (secure)
+                        // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\""
+                        // gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
+                        gradleCmd += " \"-Dadmin.username=${ADMIN_USERNAME}\" \"-Dadmin.password=${ADMIN_PASSWORD}\""
+                        gradleCmd += " \"-Dbasic.username=${BASIC_USERNAME}\" \"-Dbasic.password=${BASIC_PASSWORD}\" \"-Dbasic.email=${BASIC_EMAIL}\""
+
                         // Add log level
                         if (params.LOG_LEVEL == 'DEBUG') {
                             gradleCmd += " --debug"
@@ -139,7 +143,7 @@ pipeline {
                             gradleCmd += " -Dretry.enabled=true"
                         }
                         
-                        echo "Executing: gradlew ${params.SUITE} on ${params.ENVIRONMENT} with ${params.BROWSER_NAME} ..."
+                        echo "Running tests on ${params.RUN_ON} for ${params.ENVIRONMENT} environment with ${params.BROWSER_NAME} browser..."
 
                         bat gradleCmd
                     }
