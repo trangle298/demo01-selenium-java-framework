@@ -6,9 +6,7 @@ pipeline {
         pollSCM('H/2 * * * *')
         
         // Scheduled smoke test every Thursday at 8 AM
-        parameterizedCron('''
-            H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main
-        ''')
+        parameterizedCron('H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main')
     }
 
      options {
@@ -30,7 +28,7 @@ pipeline {
                 description: 'Required: Enter Git Branch name to clone code'
         )
         choice(name: 'RUN_ON',
-                choices: 'Grid\nLocal\nPerfecto\nAWS',
+                choices: 'Local\nGrid\nPerfecto\nAWS',
                 description: 'Required: Select where to run'
         )
         choice(name: 'BROWSER_NAME',
@@ -94,33 +92,45 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    echo "===> Executing test... "
-                    
-                    // Build the gradle command based on parameters
-                    def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -Dheadless=true"
-                    
-                    // Add parallel execution if thread count > 1
-                    if (params.PARALLEL_THREAD.toInteger() > 1) {
-                        gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
-                    }
-                    
-                    // Add group filter if specified
-                    if (params.GROUP?.trim()) {
-                        gradleCmd += " -Dgroups=${params.GROUP}"
-                    }
+                    // Use withCredentials to securely pass credentials as environment variables
+                    withCredentials([
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_USERNAME", variable: 'ADMIN_USERNAME'),
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_PASSWORD", variable: 'ADMIN_PASSWORD'),
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_USERNAME", variable: 'BASIC_USERNAME'),
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_PASSWORD", variable: 'BASIC_PASSWORD'),
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_EMAIL", variable: 'BASIC_EMAIL')
+                    ]) {
+                        // Build gradle command
+                        def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -Dheadless=true"
+                        
+                        // Add credentials via environment variables (secure)
+                        gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\""
+                        gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
 
-                    // Add log level
-                    if (params.LOG_LEVEL == 'DEBUG') {
-                        gradleCmd += " --debug"
+                        // Add parallel execution if thread count > 1
+                        if (params.PARALLEL_THREAD.toInteger() > 1) {
+                            gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
+                        }
+                        
+                        // Add group filter if specified
+                        if (params.GROUP?.trim()) {
+                            gradleCmd += " -Dgroups=${params.GROUP}"
+                        }
+
+                        // Add log level
+                        if (params.LOG_LEVEL == 'DEBUG') {
+                            gradleCmd += " --debug"
+                        }
+                        
+                        // Add retry flag if requested
+                        if (params.RETRY_FAILED_TESTS == 'Yes') {
+                            gradleCmd += " -Dretry.enabled=true"
+                        }
+                        
+                        echo "Executing: gradlew ${params.SUITE} on ${params.ENVIRONMENT} with ${params.BROWSER_NAME} ..."
+
+                        bat gradleCmd
                     }
-                    
-                    // Add retry flag if requested (handled by Gradle Test Retry Plugin)
-                    if (params.RETRY_FAILED_TESTS == 'Yes') {
-                        gradleCmd += " -Dretry.enabled=true"
-                    }
-                    
-                    echo "Executing: ${gradleCmd}"
-                    bat gradleCmd
                 }
             }
             post {
@@ -135,9 +145,6 @@ pipeline {
                                 reportName: 'Extent HTML Report',
                                 reportTitles: '',
                                 useWrapperFileDirectly: true])
-                }
-                failure {
-                    echo "Test execution failed!"
                 }
             }
         }

@@ -7,13 +7,13 @@ package drivers;
 public class DriverManagerFactory {
 
     public static DriverManager getDriverManager(String browserName) {
-        if (browserName.equalsIgnoreCase("chrome")) {
+        if ("chrome".equalsIgnoreCase(browserName)) {
             return new ChromeDriverManager();
-        } else if (browserName.equalsIgnoreCase("firefox")) {
+        } else if ("firefox".equalsIgnoreCase(browserName)) {
             return new FirefoxDriverManager();
-        } else if (browserName.equalsIgnoreCase("safari")) {
+        } else if ("safari".equalsIgnoreCase(browserName)) {
             return new SafariDriverManager();
-        } else if (browserName.equalsIgnoreCase("edge")) {
+        } else if ("edge".equalsIgnoreCase(browserName)) {
             return new EdgeDriverManager();
         } else {
             throw new IllegalArgumentException("Unsupported browser: " + browserName);

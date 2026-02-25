@@ -70,6 +70,7 @@ dependencies {
 
 tasks.withType(Test) {
     systemProperty 'env', System.properties['env']
+    systemProperty 'testSuite', System.properties['testSuite']
     systemProperty 'runOn', System.properties['runOn']
     systemProperty 'platform', System.properties['platform']
     systemProperty 'browser', System.properties['browser']
@@ -101,11 +102,24 @@ tasks.withType(Test) {
     }
 }
 
+tasks.register('testSuite', Test) {
+    def suite = System.getProperty('suite')
+
+    if (suite != null) {
+        def suitePath = "src/test/resources/${suite}.xml"
+        useTestNG {
+            suites suitePath
+        }
+    }
+}
+
 tasks.register('smoke', Test) {
     useTestNG {
         suites "src/test/resources/smoke.xml"
     }
 }
+
+// Lam 1 cai testSuite, truyen vo dynamic  e.g. regression, if testSuite == null -> -Pgroups = ....
 
 tasks.register('regression', Test) {
     useTestNG {

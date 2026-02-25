@@ -1,22 +1,22 @@
 package drivers;
 
+import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import config.ConfigManager;
 
 /**
  * Chrome browser driver manager.
  * Configures ChromeDriver with options for page load strategy and automation
  * detection.
+ * Supports both local execution and Selenium Grid via base class.
  */
 public class ChromeDriverManager extends DriverManager {
 
     @Override
-    public WebDriver createDriver() {
-
-        boolean eager = Boolean.parseBoolean(ConfigManager.getProperty("eagerPageLoadStrategy"));
+    protected MutableCapabilities getBrowserOptions() {
+        boolean eager = isEagerPageLoad();
         boolean headless = isHeadless();
 
         ChromeOptions options = new ChromeOptions();
@@ -37,18 +37,12 @@ public class ChromeDriverManager extends DriverManager {
                 new String[] { "enable-automation" });
         options.setExperimentalOption("useAutomationExtension", false);
 
-        return new ChromeDriver(options);
+        return options;
     }
 
-    // ---- Private Helper Methods ----
-    private boolean isHeadless() {
-        String systemValue = System.getProperty("headless");
-
-        if (systemValue != null) {
-            return Boolean.parseBoolean(systemValue);
-        }
-
-        String configValue = ConfigManager.getProperty("headless");
-        return configValue != null && Boolean.parseBoolean(configValue);
+    @Override
+    protected WebDriver createLocalDriver(MutableCapabilities options) {
+        return new ChromeDriver((ChromeOptions) options);
     }
+
 }

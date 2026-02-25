@@ -1,6 +1,6 @@
 package drivers;
 
-import config.ConfigManager;
+import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.edge.EdgeDriver;
@@ -13,12 +13,29 @@ import org.openqa.selenium.edge.EdgeOptions;
 public class EdgeDriverManager extends DriverManager {
 
     @Override
-    public WebDriver createDriver() {
-        boolean eager = Boolean.parseBoolean(ConfigManager.getProperty("eagerPageLoadStrategy"));
+    protected MutableCapabilities getBrowserOptions() {
+        boolean eager = isEagerPageLoad();
+        boolean headless = isHeadless();
 
         EdgeOptions options = new EdgeOptions();
         options.setPageLoadStrategy(eager ? PageLoadStrategy.EAGER : PageLoadStrategy.NORMAL);
 
-        return new EdgeDriver(options);
+        if (headless) {
+            options.addArguments(
+                    "--headless=new",
+                    "--window-size=1920,1080",
+                    "--disable-gpu",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage");
+        } else {
+            options.addArguments("--start-maximized");
+        }
+
+        return options;
+    }
+
+    @Override
+    protected WebDriver createLocalDriver(MutableCapabilities options) {
+        return new EdgeDriver((EdgeOptions) options);
     }
 }

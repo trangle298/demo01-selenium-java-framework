@@ -6,7 +6,6 @@ import helpers.providers.TestUserProvider;
 import model.UserAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
@@ -25,8 +24,6 @@ public class BaseTest {
 
     protected final Logger LOG = LogManager.getLogger(getClass());
 
-    // ThreadLocal ensures each parallel thread gets its own WebDriver instance / test user
-    // Required for parallel="tests" or parallel="classes" in user-management.xml
     protected ThreadLocal<WebDriver> driver = new ThreadLocal<>();
     private static ThreadLocal<UserAccount> testUser = new ThreadLocal<>();
 
