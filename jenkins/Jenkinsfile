@@ -120,12 +120,7 @@ pipeline {
                         }
                         
                         // Add required params
-                        gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dheadless=true"
-                        
-                        // Add parallel execution if thread count > 1
-                        if (params.PARALLEL_THREAD.toInteger() > 1) {
-                            gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
-                        }
+                        gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD} -Dheadless=true"
                         
                         // Add credentials via environment variables (secure)
                         // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\""

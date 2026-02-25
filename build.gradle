@@ -116,6 +116,16 @@ tasks.register('testSuite', Test) {
         def suitePath = "src/test/resources/${suite}.xml"
         useTestNG {
             suites suitePath
+
+            // Override XML parallel/thread-count if passed via -Dparallel and -Dthreadcount
+            def parallelMode = System.getProperty('parallel')
+            def threadCountParam = System.getProperty('threadcount')
+            if (parallelMode != null) {
+                parallel = parallelMode          // e.g. "classes", "methods", "tests"
+            }
+            if (threadCountParam != null) {
+                threadCount = threadCountParam.toInteger()
+            }
         }
     }
 }
