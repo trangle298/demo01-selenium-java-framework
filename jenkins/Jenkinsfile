@@ -3,7 +3,7 @@ pipeline {
 
     triggers {
         // Check GitHub for changes every 2 minutes and trigger build if found
-        pollSCM('H/2 * * * *')
+        pollSCM('H/2 * * * * %SUITE=smoke;GIT_BRANCH=main')
         
         // Scheduled smoke test every Thursday at 8 AM
         parameterizedCron('H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main')
@@ -106,9 +106,6 @@ pipeline {
                     withCredentials([
                         string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_USERNAME", variable: 'ADMIN_USERNAME'),
                         string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_PASSWORD", variable: 'ADMIN_PASSWORD'),
-                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_USERNAME", variable: 'BASIC_USERNAME'),
-                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_PASSWORD", variable: 'BASIC_PASSWORD'),
-                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_USER_EMAIL", variable: 'BASIC_EMAIL')
                     ]) {
                          // Build gradle command
                         def gradleCmd = ".\\gradlew"
@@ -123,10 +120,8 @@ pipeline {
                         gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD} -Dheadless=true"
                         
                         // Add credentials via environment variables (secure)
-                        // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\""
-                        // gradleCmd += " \"-Dbasic.username=%BASIC_USERNAME%\" \"-Dbasic.password=%BASIC_PASSWORD%\" \"-Dbasic.email=%BASIC_EMAIL%\""
+                        // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\"" 
                         gradleCmd += " \"-Dadmin.username=${ADMIN_USERNAME}\" \"-Dadmin.password=${ADMIN_PASSWORD}\""
-                        gradleCmd += " \"-Dbasic.username=${BASIC_USERNAME}\" \"-Dbasic.password=${BASIC_PASSWORD}\" \"-Dbasic.email=${BASIC_EMAIL}\""
 
                         // Add log level
                         if (params.LOG_LEVEL == 'DEBUG') {

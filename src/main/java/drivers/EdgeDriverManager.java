@@ -38,4 +38,5 @@ public class EdgeDriverManager extends DriverManager {
     protected WebDriver createLocalDriver(MutableCapabilities options) {
         return new EdgeDriver((EdgeOptions) options);
     }
+
 }

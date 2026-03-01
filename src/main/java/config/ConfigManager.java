@@ -1,10 +1,8 @@
 package config;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import model.enums.UserType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -60,35 +58,6 @@ public class ConfigManager {
     // Core Property Resolution
     // ============================================================
     /**
-     * Resolves an environment-specific configuration value using the following priority order:
-     *
-     * <ol>
-     * <li>JVM System Property (-Dkey=value)</li>
-     * <li>Environment-specific .env file (loaded via dotenv)</li>
-     * </ol>
-     *
-     * @param key configuration key
-     * @return resolved value, or null if not found in any source
-     */
-    public static String getEnvProperty(String key) {
-        String value = System.getProperty(key);
-        if (!isEmpty(value))
-            return value;
-
-        if (dotenv != null) {
-            value = dotenv.get(key);
-            if (!isEmpty(value))
-                return value;
-        }
-
-        return null;
-    }
-
-    public static String getConfigProperty(String key) {
-        return properties.getProperty(key);
-    }
-
-    /**
      * Resolves a configuration value using the following priority order:
      *
      * <ol>
@@ -117,32 +86,12 @@ public class ConfigManager {
         return value;
     }
 
-    public static String getRequiredConfigProperty(String key) {
-        String value = getConfigProperty(key);
-        if (isEmpty(value)) {
-            throw new IllegalStateException("Missing required config key: " + key);
-        }
-        return value;
-    }
-
     public static String getBaseUrl() {
         String url = getEnvProperty("base.url");
         if (!isEmpty(url))
             return url;
 
         return buildBaseUrlFromEnv();
-    }
-
-    public static String getUsername(UserType type) {
-        return getRequiredEnvProperty(type.usernameKey());
-    }
-
-    public static String getPassword(UserType type) {
-        return getRequiredEnvProperty(type.passwordKey());
-    }
-
-    public static String getEmail(UserType type) {
-        return getRequiredEnvProperty(type.emailKey());
     }
 
     /**
@@ -190,28 +139,45 @@ public class ConfigManager {
     }
 
     // ============================================================
-    // Specialized Builders
+    // Internal Helpers
     // ============================================================
 
     /**
-     * Builds base URL from -Denv JVM property
+     * Resolves an environment-specific configuration value using the following
+     * priority order:
+     *
+     * <ol>
+     * <li>JVM System Property (-Dkey=value)</li>
+     * <li>Environment-specific .env file (loaded via dotenv)</li>
+     * </ol>
+     *
+     * @param key configuration key
+     * @return resolved value, or null if not found in any source
      */
-    private static String buildBaseUrlFromEnv() {
-        String env = getEnv();
-        String key = "env." + env + ".host";
-        String host = getConfigProperty(key);
+    private static String getEnvProperty(String key) {
+        String value = System.getProperty(key);
+        if (!isEmpty(value))
+            return value;
 
-        if (isEmpty(host)) {
-            throw new IllegalStateException(
-                    "Missing host mapping for environment '" + env +
-                            "'. Expected property: " + key);
+        if (dotenv != null) {
+            value = dotenv.get(key);
+            if (!isEmpty(value))
+                return value;
         }
-        return String.format(BASE_URL_PATTERN, host);
+
+        return null;
     }
 
-    // ============================================================
-    // Internal Helpers
-    // ============================================================
+    /**
+     * Resolves a configuration value from config.properties only.
+     * Does NOT check system properties or environment variables.
+     * 
+     * @param key configuration key
+     * @return resolved value, or null if not found
+     */
+    private static String getConfigProperty(String key) {
+        return properties.getProperty(key);
+    }
 
     /**
      * Get an integer property from config with a default fallback.
@@ -232,6 +198,22 @@ public class ConfigManager {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * Builds base URL from -Denv JVM property
+     */
+    private static String buildBaseUrlFromEnv() {
+        String env = getEnv();
+        String key = "env." + env + ".host";
+        String host = getConfigProperty(key);
+
+        if (isEmpty(host)) {
+            throw new IllegalStateException(
+                    "Missing host mapping for environment '" + env +
+                            "'. Expected property: " + key);
+        }
+        return String.format(BASE_URL_PATTERN, host);
     }
 
     /**

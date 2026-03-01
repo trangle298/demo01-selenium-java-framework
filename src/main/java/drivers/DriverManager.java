@@ -1,6 +1,8 @@
 package drivers;
 
 import config.ConfigManager;
+import config.enums.RunOn;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.MutableCapabilities;
@@ -34,13 +36,13 @@ public abstract class DriverManager {
     public final WebDriver createDriver() {
         MutableCapabilities options = getBrowserOptions();
 
-        String runOn = getRunOn();
+        RunOn runOnPlatform = getRunOn();
 
-        if ("local".equalsIgnoreCase(runOn)) {
+        if (runOnPlatform == RunOn.LOCAL) {
             return createLocalDriver(options);
         } else {
             // Remote execution: Grid, Perfecto, AWS, etc.
-            return createRemoteDriver(options, runOn);
+            return createRemoteDriver(options, runOnPlatform);
         }
     }
 
@@ -80,7 +82,7 @@ public abstract class DriverManager {
      */
     protected boolean isHeadless() {
         String value = ConfigManager.getProperty("headless");
-        return value != null && Boolean.parseBoolean(value);
+        return value != null && Boolean.parseBoolean(value); // why unnecessary value null check?
     }
 
     // ---- Private Helper Methods ----
@@ -93,19 +95,21 @@ public abstract class DriverManager {
      * @return RemoteWebDriver instance connected to remote platform
      * @throws RuntimeException if remote URL is invalid or connection fails
      */
-    private WebDriver createRemoteDriver(MutableCapabilities capabilities, String platform) {
-        String remoteUrl = getRemoteUrl(platform);
+    private WebDriver createRemoteDriver(MutableCapabilities capabilities, RunOn runOnPlatform) {
+        String remoteUrl = getRemoteUrl(runOnPlatform);
 
         try {
-            LOG.info("Connecting to remote platform: {} at {}", platform, remoteUrl);
+            LOG.info("Connecting to remote platform: {} at {}", runOnPlatform, remoteUrl);
             LOG.info("Browser capabilities: {}", capabilities);
 
             return new RemoteWebDriver(URI.create(remoteUrl).toURL(), capabilities);
+            // return new RemoteWebDriver(new URL(remoteUrl), capabilities);
 
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Invalid remote URL for platform '" + platform + "': " + remoteUrl, e);
+            throw new RuntimeException("Invalid remote URL for platform '" + runOnPlatform + "': " + remoteUrl, e);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to connect to remote platform '" + platform + "' at " + remoteUrl, e);
+            throw new RuntimeException("Failed to connect to remote platform '" + runOnPlatform + "' at " + remoteUrl,
+                    e);
         }
     }
 
@@ -116,13 +120,13 @@ public abstract class DriverManager {
      * 
      * @return Execution platform: local, grid, perfecto, aws
      */
-    private String getRunOn() {
+    private RunOn getRunOn() {
         String runOn = ConfigManager.getProperty("runOn");
         if (runOn == null || runOn.trim().isEmpty()) {
             LOG.warn("'runOn' property not set, defaulting to 'local'");
-            return "local";
+            return RunOn.LOCAL;
         }
-        return runOn.toLowerCase();
+        return RunOn.fromName(runOn);
     }
 
     /**
@@ -131,13 +135,13 @@ public abstract class DriverManager {
      * @param platform Remote platform: grid, perfecto, aws
      * @return Remote URL for the platform
      */
-    private String getRemoteUrl(String platform) {
-        String urlKey = platform + ".url";
+    private String getRemoteUrl(RunOn runOnPlatform) {
+        String urlKey = runOnPlatform.getName() + ".url";
         String url = ConfigManager.getProperty(urlKey);
 
         if (url == null || url.trim().isEmpty()) {
             throw new IllegalStateException(
-                    "Missing remote URL for platform '" + platform + "'. " +
+                    "Missing remote URL for platform '" + runOnPlatform + "'. " +
                             "Set '" + urlKey + "' in config.properties or via system property.");
         }
 

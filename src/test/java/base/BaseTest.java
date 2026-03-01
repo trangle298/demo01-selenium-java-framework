@@ -1,7 +1,9 @@
 package base;
 
 import config.ConfigManager;
+import config.TestConfig;
 import drivers.DriverManagerFactory;
+import config.enums.RunOn;
 import helpers.providers.TestUserProvider;
 import model.UserAccount;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +12,7 @@ import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 import reports.ExtentReportManager;
+import utils.GridHealthCheckRetry;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -31,7 +34,16 @@ public class BaseTest {
 
     @BeforeSuite(alwaysRun = true)
     public void beforeSuite() {
-        LOG.info("Initialize Extent Report");
+        RunOn runOn = TestConfig.getRunOn();
+        if (runOn == RunOn.GRID) {
+            // boolean ready = GridHealthCheck.isGridReady(TestConfig.getHubUrl() +
+            // "/status");
+            boolean ready = GridHealthCheckRetry.waitUntilGridReady(TestConfig.getHubUrl() + "/status");
+            if (!ready) {
+                LOG.error("Grid is NOT ready. Aborting execution");
+                System.exit(0);
+            }
+        }
         ExtentReportManager.initializeExtentReports();
     }
 
@@ -90,8 +102,7 @@ public class BaseTest {
         Test testAnnotation = method.getAnnotation(Test.class);
         boolean requiresUser = true;
         if (testAnnotation != null) {
-            requiresUser =
-                    Arrays.asList(testAnnotation.groups()).contains(REQUIRE_USER_GROUP);
+            requiresUser = Arrays.asList(testAnnotation.groups()).contains(REQUIRE_USER_GROUP);
         }
 
         if (requiresUser) {
@@ -112,7 +123,8 @@ public class BaseTest {
         if (result.getStatus() == ITestResult.FAILURE) {
             LOG.error("Test FAILED: " + result.getName());
 
-            // Capture screenshot for hard assertion failures (exceptions, NoSuchElementException, etc.)
+            // Capture screenshot for hard assertion failures (exceptions,
+            // NoSuchElementException, etc.)
             // Soft assertion failures already capture screenshots inline
             Throwable throwable = result.getThrowable();
             boolean isSoftAssertFailure = throwable != null &&
