@@ -70,10 +70,18 @@ dependencies {
 
 tasks.withType(Test) {
     systemProperty 'env', System.properties['env']
+    systemProperty 'testSuite', System.properties['testSuite']
     systemProperty 'runOn', System.properties['runOn']
     systemProperty 'platform', System.properties['platform']
     systemProperty 'browser', System.properties['browser']
     systemProperty 'headless', System.properties['headless']
+
+    // Forward credentials to the test JVM (passed via -Dadmin.username etc. from Jenkins)
+    systemProperty 'admin.username', System.properties['admin.username']
+    systemProperty 'admin.password', System.properties['admin.password']
+    systemProperty 'basic.username', System.properties['basic.username']
+    systemProperty 'basic.password', System.properties['basic.password']
+    systemProperty 'basic.email', System.properties['basic.email']
 
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
@@ -101,39 +109,24 @@ tasks.withType(Test) {
     }
 }
 
-tasks.register('smoke', Test) {
-    useTestNG {
-        suites "src/test/resources/smoke.xml"
-    }
-}
+tasks.register('testSuite', Test) {
+    def suite = System.getProperty('suite')
 
-tasks.register('regression', Test) {
-    useTestNG {
-        suites "src/test/resources/regression.xml"
-    }
-}
+    if (suite != null) {
+        def suitePath = "src/test/resources/${suite}.xml"
+        useTestNG {
+            suites suitePath
 
-tasks.register('userManagement', Test) {
-    useTestNG {
-        suites "src/test/resources/user-management.xml"
-    }
-}
-
-tasks.register('browsing', Test) {
-    useTestNG {
-        suites "src/test/resources/browsing.xml"
-    }
-}
-
-tasks.register('booking', Test) {
-    useTestNG {
-        suites "src/test/resources/booking.xml"
-    }
-}
-
-tasks.register('e2e', Test) {
-    useTestNG {
-        suites "src/test/resources/e2e.xml"
+            // Override XML parallel/thread-count if passed via -Dparallel and -Dthreadcount
+            def parallelMode = System.getProperty('parallel')
+            def threadCountParam = System.getProperty('threadcount')
+            if (parallelMode != null) {
+                parallel = parallelMode          // e.g. "classes", "methods", "tests"
+            }
+            if (threadCountParam != null) {
+                threadCount = threadCountParam.toInteger()
+            }
+        }
     }
 }
 

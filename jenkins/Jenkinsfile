@@ -3,12 +3,10 @@ pipeline {
 
     triggers {
         // Check GitHub for changes every 2 minutes and trigger build if found
-        pollSCM('H/2 * * * *')
+        pollSCM('H/2 * * * * %SUITE=smoke;GIT_BRANCH=main')
         
         // Scheduled smoke test every Thursday at 8 AM
-        parameterizedCron('''
-            H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main
-        ''')
+        parameterizedCron('H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main')
     }
 
      options {
@@ -22,7 +20,7 @@ pipeline {
                 description: 'Required - Select environment'
         )
         choice(name: 'SUITE',
-                choices: 'smoke\nregression\ne2e\nuserManagement\nbrowsing\nbooking',
+                choices: 'none\nsmoke\nregression\ne2e\nuserManagement\nbrowsing\nbooking',
                 description: 'Required: Select suite to run'
         )
         string(name: 'GIT_BRANCH',
@@ -30,7 +28,7 @@ pipeline {
                 description: 'Required: Enter Git Branch name to clone code'
         )
         choice(name: 'RUN_ON',
-                choices: 'Grid\nLocal\nPerfecto\nAWS',
+                choices: 'Local\nGrid\nPerfecto\nAWS',
                 description: 'Required: Select where to run'
         )
         choice(name: 'BROWSER_NAME',
@@ -42,8 +40,7 @@ pipeline {
                 description: 'Required: Select platform to run'
         )
         string(name: 'TO_RECIPIENT',
-                defaultValue: 'trang.dl298@gmail.com',
-                description: 'Optional: Enter email address to recievie automation result'
+                description: 'Optional: Enter email address to receive automation result'
         )
         choice(name: 'PARALLEL_THREAD',
                 choices: '1\n2\n3\n4\n5',
@@ -68,12 +65,23 @@ pipeline {
     }
 
     stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (params.SUITE == 'none' && !params.GROUP?.trim()) {
+                        error("❌ Build aborted: You must select a SUITE or specify a GROUP filter. Both cannot be empty.")
+                    }
+                }
+            }
+        }
+
         stage('Setup') {
             steps {
                 script {
-                    currentBuild.displayName = "#${currentBuild.number} ${params.SUITE} ${params.ENVIRONMENT} ${params.GIT_BRANCH}"
-                    println "Build: #${currentBuild.number} ${params.SUITE} ${params.GIT_BRANCH}"
-                    println "Job: ${JOB_NAME}"
+                    def runLabel = params.SUITE != 'none' ? params.SUITE : "group:${params.GROUP}"
+                    currentBuild.displayName = "#${currentBuild.number} ${runLabel} ${params.ENVIRONMENT} ${params.GIT_BRANCH}"
+                    echo "Build: #${currentBuild.number} ${runLabel} ${params.GIT_BRANCH}"
+                    echo "Job: ${JOB_NAME}"
                     echo "Build started at ${new Date(currentBuild.startTimeInMillis)}"
                 }
             }
@@ -82,7 +90,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "===> Checking out ${params.GIT_BRANCH}"
-                git branch: 'main', credentialsId: 'git-cred-key', url: 'git@github.com:trangle298/demo01-selenium-java-framework.git'
+                git branch: "${params.GIT_BRANCH}", credentialsId: 'git-cred-key', url: 'git@github.com:trangle298/demo01-selenium-java-framework.git'
             }
             post {
                 failure {
@@ -94,33 +102,41 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    echo "===> Executing test... "
-                    
-                    // Build the gradle command based on parameters
-                    def gradleCmd = ".\\gradlew ${params.SUITE} -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -Dheadless=true"
-                    
-                    // Add parallel execution if thread count > 1
-                    if (params.PARALLEL_THREAD.toInteger() > 1) {
-                        gradleCmd += " -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD}"
-                    }
-                    
-                    // Add group filter if specified
-                    if (params.GROUP?.trim()) {
-                        gradleCmd += " -Dgroups=${params.GROUP}"
-                    }
+                    // Use withCredentials to securely pass credentials as environment variables
+                    withCredentials([
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_USERNAME", variable: 'ADMIN_USERNAME'),
+                        string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_PASSWORD", variable: 'ADMIN_PASSWORD'),
+                    ]) {
+                         // Build gradle command
+                        def gradleCmd = ".\\gradlew"
+                        
+                        if (params.SUITE != 'none') {
+                             gradleCmd += " testSuite -Dsuite=${params.SUITE}"
+                        } else {
+                             gradleCmd += " test"
+                        }
+                        
+                        // Add required params
+                        gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD} -Dheadless=true"
+                        
+                        // Add credentials via environment variables (secure)
+                        // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\"" 
+                        gradleCmd += " \"-Dadmin.username=${ADMIN_USERNAME}\" \"-Dadmin.password=${ADMIN_PASSWORD}\""
 
-                    // Add log level
-                    if (params.LOG_LEVEL == 'DEBUG') {
-                        gradleCmd += " --debug"
+                        // Add log level
+                        if (params.LOG_LEVEL == 'DEBUG') {
+                            gradleCmd += " --debug"
+                        }
+                        
+                        // Add retry flag if requested
+                        if (params.RETRY_FAILED_TESTS == 'Yes') {
+                            gradleCmd += " -Dretry.enabled=true"
+                        }
+                        
+                        echo "Running tests on ${params.RUN_ON} for ${params.ENVIRONMENT} environment with ${params.BROWSER_NAME} browser..."
+
+                        bat gradleCmd
                     }
-                    
-                    // Add retry flag if requested (handled by Gradle Test Retry Plugin)
-                    if (params.RETRY_FAILED_TESTS == 'Yes') {
-                        gradleCmd += " -Dretry.enabled=true"
-                    }
-                    
-                    echo "Executing: ${gradleCmd}"
-                    bat gradleCmd
                 }
             }
             post {
@@ -135,9 +151,6 @@ pipeline {
                                 reportName: 'Extent HTML Report',
                                 reportTitles: '',
                                 useWrapperFileDirectly: true])
-                }
-                failure {
-                    echo "Test execution failed!"
                 }
             }
         }

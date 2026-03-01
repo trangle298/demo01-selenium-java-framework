@@ -142,6 +142,11 @@ public class BasePage {
                 .perform();
     }
 
+    // Scroll element into view
+    public void scrollIntoView(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
+    }
+
     // Click element
     public void click(WebElement element) {
         waitForElementToBeClickable(element);
@@ -201,7 +206,7 @@ public class BasePage {
         try {
             waitForVisibilityOfElementLocatedBy(locator);
             return true;
-        }  catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -246,10 +251,10 @@ public class BasePage {
         return isElementDisplayedCustom(element, longWait);
     }
 
-
     // Build full URL from base URL and path
     protected String url(String path) {
-        if (path == null || path.isEmpty()) return ConfigManager.getBaseUrl();
+        if (path == null || path.isEmpty())
+            return ConfigManager.getBaseUrl();
         return ConfigManager.getBaseUrl() + path;
     }
 

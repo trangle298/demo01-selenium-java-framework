@@ -15,32 +15,39 @@ import reports.ExtentReportManager;
 public class TC28_UpdateWithExistingEmailTest extends BaseTest {
 
     @Test(groups = "requiresUser",
-            description = "Test Blocked Update due to an invalid field: Full Name")
+            description = "Test Blocked Update due to existing email")
     public void testUpdateBlockedWithExistingEmail() {
         SoftAssert softAssert = new SoftAssert();
 
-        // Login
-        ExtentReportManager.info("Login with newly created user credentials");
-        LoginPage loginPage = new LoginPage(getDriver());
-        UserAccount testUser = getTestUser();
-        AuthActionHelper.login(loginPage, testUser);
+        // Create a second user to source an existing email — cleaned up after test
+        UserAccount secondUser = TestUserProvider.createNewTestUser();
+        try {
+            // Login with primary test user
+            ExtentReportManager.info("Login with newly created user credentials");
+            LoginPage loginPage = new LoginPage(getDriver());
+            UserAccount testUser = getTestUser();
+            AuthActionHelper.login(loginPage, testUser);
 
-        // Attempt to update user info with valid phone nr and email but invalid name (containing numbers)
-        ExtentReportManager.info("Navigate to account page and attempt update with invalid full name");
-        AccountPage accountPage = new AccountPage(getDriver());
-        accountPage.navigateToAccountPage();
-        accountPage.waitForAccountFormDisplay();
+            // Attempt to update primary user's info using the second user's email
+            ExtentReportManager.info("Navigate to account page and attempt update with existing email");
+            AccountPage accountPage = new AccountPage(getDriver());
+            accountPage.navigateToAccountPage();
+            accountPage.waitForAccountFormDisplay();
 
-        String existingEmail = TestUserProvider.getDefaultTestUser().getEmail();
-        String newName = UserAccountTestDataGenerator.generateNewName(testUser.getFullName());
-        String newPhoneNr = UserAccountTestDataGenerator.generateNewPhoneNumber(testUser.getPhoneNumber());
+            String existingEmail = secondUser.getEmail();
+            String newName = UserAccountTestDataGenerator.generateNewName(testUser.getFullName());
+            String newPhoneNr = UserAccountTestDataGenerator.generateNewPhoneNumber(testUser.getPhoneNumber());
 
-        accountPage.changeUserInfoAndSave(newName, existingEmail, newPhoneNr);
+            accountPage.changeUserInfoAndSave(newName, existingEmail, newPhoneNr);
 
-        // Verify correct validation message and form displays original values
-        ExtentReportManager.info("Verify failed updated of user info due to existing email");
-        AccountVerificationHelper.verifyUpdateFailsDueToExistingEmailError(accountPage, testUser, getDriver(), softAssert);
+            // Verify correct validation message and form displays original values
+            ExtentReportManager.info("Verify failed update of user info due to existing email");
+            AccountVerificationHelper.verifyUpdateFailsDueToExistingEmailError(accountPage, testUser, getDriver(),
+                    softAssert);
 
-        softAssert.assertAll();
+            softAssert.assertAll();
+        } finally {
+            TestUserProvider.deleteUser(secondUser);
+        }
     }
 }
