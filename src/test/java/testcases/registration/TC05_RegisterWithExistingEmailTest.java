@@ -4,7 +4,11 @@ import base.BaseTest;
 import helpers.providers.MessagesProvider;
 import helpers.providers.TestUserProvider;
 import helpers.verifications.RegisterVerificationHelper;
+import model.UserAccount;
 import model.ui.RegisterDataUI;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
@@ -15,13 +19,25 @@ import static helpers.providers.UserAccountTestDataGenerator.generateValidRegist
 
 public class TC05_RegisterWithExistingEmailTest extends BaseTest {
 
+    private UserAccount existingUser;
+
+    @BeforeClass
+    public void createExistingUser() {
+        existingUser = TestUserProvider.createNewTestUser();
+    }
+
+    @AfterClass
+    public void cleanup() {
+        TestUserProvider.deleteUser(existingUser);
+    }
+
     @DataProvider(name = "existingEmailScenarios")
     public Object[][] existingEmailScenarios() {
-        String existingEmail = TestUserProvider.getDefaultTestUser().getEmail();
+        String existingEmail = existingUser.getEmail();
 
-        return new Object[][]{
-                {existingEmail, "Existing Email"},
-                {existingEmail.toUpperCase(), "Existing Email in different casing"},
+        return new Object[][] {
+                { existingEmail, "Existing Email" },
+                { existingEmail.toUpperCase(), "Existing Email in different casing" },
         };
     }
 

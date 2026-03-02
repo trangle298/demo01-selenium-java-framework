@@ -1,10 +1,8 @@
 package config;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import model.enums.UserType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,8 +38,8 @@ public class ConfigManager {
     // Static Initialization
     // ============================================================
     static {
-        loadProperties();
-        loadEnv();  // Must run before any method that accesses dotenv
+        loadConfigProperties();
+        loadEnv(); // Must run before any method that accesses dotenv
     }
 
     // ============================================================
@@ -63,64 +61,38 @@ public class ConfigManager {
      * Resolves a configuration value using the following priority order:
      *
      * <ol>
-     *   <li>JVM System Property (-Dkey=value)</li>
-     *   <li>OS Environment Variable (key or KEY_WITH_UNDERSCORES)</li>
-     *   <li>Environment-specific .env file (loaded via dotenv)</li>
-     *   <li>config.properties (classpath)</li>
+     * <li>JVM System Property (-Dkey=value)</li>
+     * <li>Environment-specific .env file (loaded via dotenv)</li>
+     * <li>config.properties</li>
      * </ol>
      *
      * @param key configuration key
      * @return resolved value, or null if not found in any source
      */
     public static String getProperty(String key) {
-        String value = System.getProperty(key);
-        if (!isEmpty(value)) return value;
-
-        value = System.getenv(key);
-        if (!isEmpty(value)) return value;
-
-        String envKey = key.toUpperCase().replace('.', '_');
-        value = System.getenv(envKey);
-        if (!isEmpty(value)) return value;
-
-        if (dotenv != null) {
-            value = dotenv.get(key);
-            if (!isEmpty(value)) return value;
-        }
-
-        return properties.getProperty(key);
+        if (getEnvProperty(key) != null)
+            return getEnvProperty(key);
+        return getConfigProperty(key);
     }
 
     // ============================================================
     // Public Config API
     // ============================================================
-    public static String getRequiredProperty(String key) {
-        String value = getProperty(key);
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalStateException("Missing required config key: " + key);
+    public static String getRequiredEnvProperty(String key) {
+        String value = getEnvProperty(key);
+        if (isEmpty(value)) {
+            throw new IllegalStateException("Missing required env key: " + key);
         }
         return value;
     }
 
     public static String getBaseUrl() {
-        String url = getProperty("base.url");
-        if (!isEmpty(url)) return url;
+        String url = getEnvProperty("base.url");
+        if (!isEmpty(url))
+            return url;
 
         return buildBaseUrlFromEnv();
     }
-
-    public static String getUsername(UserType type) {
-        return getRequiredProperty(type.usernameKey());
-    }
-
-    public static String getPassword(UserType type) {
-        return getRequiredProperty(type.passwordKey());
-    }
-
-    public static String getEmail(UserType type) {
-        return getRequiredProperty(type.emailKey());
-    }
-
 
     /**
      * Get the default explicit wait timeout in seconds.
@@ -129,7 +101,12 @@ public class ConfigManager {
      * @return Timeout in seconds (default: 10)
      */
     public static int getExplicitWait() {
-        return getIntProperty("explicit.wait", DEFAULT_EXPLICIT_WAIT);
+
+        String value = getEnvProperty("explicit.wait");
+        if (!isEmpty(value))
+            return Integer.parseInt(value);
+
+        return getIntConfigProperty("explicit.wait", DEFAULT_EXPLICIT_WAIT);
     }
 
     /**
@@ -139,38 +116,26 @@ public class ConfigManager {
      * @return Timeout in seconds (default: 3)
      */
     public static int getShortWait() {
-        return getIntProperty("short.wait", DEFAULT_SHORT_WAIT);
+        String value = getEnvProperty("short.wait");
+        if (!isEmpty(value))
+            return Integer.parseInt(value);
+
+        return getIntConfigProperty("short.wait", DEFAULT_SHORT_WAIT);
     }
 
     /**
      * Get the long wait timeout in seconds.
-     * Used for slow operations like API calls, page redirects, or complex interactions.
+     * Used for slow operations like API calls, page redirects, or complex
+     * interactions.
      * 
      * @return Timeout in seconds (default: 20)
      */
     public static int getLongWait() {
-        return getIntProperty("long.wait", DEFAULT_LONG_WAIT);
-    }
+        String value = getEnvProperty("long.wait");
+        if (!isEmpty(value))
+            return Integer.parseInt(value);
 
-    // ============================================================
-    // Specialized Builders
-    // ============================================================
-
-    /**
-     * Builds base URL from -Denv JVM property
-     */
-    private static String buildBaseUrlFromEnv() {
-        String env = getEnv();
-        String key = "env." + env + ".host";
-        String host = getProperty(key);
-
-        if (isEmpty(host)) {
-            throw new IllegalStateException(
-                    "Missing host mapping for environment '" + env +
-                            "'. Expected property: " + key
-            );
-        }
-        return String.format(BASE_URL_PATTERN, host);
+        return getIntConfigProperty("long.wait", DEFAULT_LONG_WAIT);
     }
 
     // ============================================================
@@ -178,15 +143,52 @@ public class ConfigManager {
     // ============================================================
 
     /**
+     * Resolves an environment-specific configuration value using the following
+     * priority order:
+     *
+     * <ol>
+     * <li>JVM System Property (-Dkey=value)</li>
+     * <li>Environment-specific .env file (loaded via dotenv)</li>
+     * </ol>
+     *
+     * @param key configuration key
+     * @return resolved value, or null if not found in any source
+     */
+    private static String getEnvProperty(String key) {
+        String value = System.getProperty(key);
+        if (!isEmpty(value))
+            return value;
+
+        if (dotenv != null) {
+            value = dotenv.get(key);
+            if (!isEmpty(value))
+                return value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolves a configuration value from config.properties only.
+     * Does NOT check system properties or environment variables.
+     * 
+     * @param key configuration key
+     * @return resolved value, or null if not found
+     */
+    private static String getConfigProperty(String key) {
+        return properties.getProperty(key);
+    }
+
+    /**
      * Get an integer property from config with a default fallback.
      * Supports system property override via -D{key}={value}
      * 
-     * @param key The property key
+     * @param key          The property key
      * @param defaultValue The default value if property not found or invalid
      * @return The property value as integer
      */
-    private static int getIntProperty(String key, int defaultValue) {
-        String value = getProperty(key);
+    private static int getIntConfigProperty(String key, int defaultValue) {
+        String value = getConfigProperty(key);
 
         if (!isEmpty(value)) {
             try {
@@ -199,10 +201,26 @@ public class ConfigManager {
     }
 
     /**
+     * Builds base URL from -Denv JVM property
+     */
+    private static String buildBaseUrlFromEnv() {
+        String env = getEnv();
+        String key = "env." + env + ".host";
+        String host = getConfigProperty(key);
+
+        if (isEmpty(host)) {
+            throw new IllegalStateException(
+                    "Missing host mapping for environment '" + env +
+                            "'. Expected property: " + key);
+        }
+        return String.format(BASE_URL_PATTERN, host);
+    }
+
+    /**
      * Check if a string is null, empty, or contains only whitespace.
      * 
      * @param s The string to check
-     * @return true if string is null, empty (""), or whitespace-only ("  ")
+     * @return true if string is null, empty (""), or whitespace-only (" ")
      */
     private static boolean isEmpty(String s) {
         return s == null || s.trim().isEmpty();
@@ -212,9 +230,9 @@ public class ConfigManager {
     // Loading Methods
     // ============================================================
 
-    private static void loadProperties() {
-        try(InputStream input = ConfigManager.class.getClassLoader().getResourceAsStream("config.properties")) {
-            if(input == null) {
+    private static void loadConfigProperties() {
+        try (InputStream input = ConfigManager.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if (input == null) {
                 LOG.warn("config.properties file not found on classpath");
                 return;
             }

@@ -34,7 +34,7 @@ public class BookingPage extends CommonPage {
     @FindBy(xpath = "//button[contains(., 'ĐẶT VÉ')]")
     private WebElement btnBookTickets;
 
-    @FindBy(xpath= "//button[.='ĐẶT VÉ']//ancestor::div[1]")
+    @FindBy(xpath = "//button[.='ĐẶT VÉ']//ancestor::div[1]")
     private WebElement divSummarySection;
 
     // ---- Components ----
@@ -51,7 +51,7 @@ public class BookingPage extends CommonPage {
     }
 
     // ============================================
-    // ---- Public Methods  ----
+    // ---- Public Methods ----
     // ============================================
 
     // ---- Navigation ----
@@ -60,7 +60,7 @@ public class BookingPage extends CommonPage {
         driver.get(url(String.format(urlConstants.SHOWTIME, showtimeId)));
     }
 
-    // ---- Wait Helpers  ----
+    // ---- Wait Helpers ----
     /**
      * Wait for the seat map to fully load - regardless of seat availability
      * Use this after page refresh or navigation to ensure page is ready.
@@ -91,7 +91,8 @@ public class BookingPage extends CommonPage {
 
     public void clickBookTicketsButton() {
         LOG.info("Click Book Tickets button");
-        click(btnBookTickets);
+        scrollIntoView(btnBookTickets);
+        safeClick(btnBookTickets);
     }
 
     public void confirmAndCloseDialog() {
@@ -109,7 +110,7 @@ public class BookingPage extends CommonPage {
         clickBookTicketsButton();
         dlgResponse.waitForDialogToBeVisible();
 
-        LocalDateTime now = LocalDateTime.now();   // Get current date and time
+        LocalDateTime now = LocalDateTime.now(); // Get current date and time
         String datetimeString = normalize(now);
 
         return datetimeString;

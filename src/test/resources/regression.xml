@@ -3,6 +3,7 @@
 <suite name="Regression Suite" parallel="classes" thread-count="5">
     <listeners>
         <listener class-name="listeners.TestListener" />
+        <listener class-name="listeners.GridExecutionListener" />
     </listeners>
 
     <test name="Registration And Authentication Tests">

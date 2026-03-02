@@ -6,7 +6,8 @@ public class ApiConfig {
 
     public static String getBaseUri() {
         String uri = ConfigManager.getProperty("api.uri");
-        if (uri != null && !uri.trim().isEmpty()) return uri;
+        if (uri != null && !uri.trim().isEmpty())
+            return uri;
         return buildApiBaseUriFromEnv();
     }
 
@@ -14,7 +15,12 @@ public class ApiConfig {
         String env = ConfigManager.getEnv();
         String key = "api.env." + env + ".host";
 
-        String host = ConfigManager.getRequiredProperty(key);
+        String host = ConfigManager.getProperty(key);
+        if (host == null || host.trim().isEmpty()) {
+            throw new IllegalStateException(
+                    "Missing host mapping for API environment '" + env +
+                            "'. Expected property: " + key);
+        }
         return String.format(ApiConstants.baseUri_PATTERN, host);
     }
 }

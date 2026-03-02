@@ -1,16 +1,18 @@
 package base;
 
-import config.ConfigManager;
+import config.TestConfig;
+import config.enums.Browser;
 import drivers.DriverManagerFactory;
+import config.enums.RunOn;
 import helpers.providers.TestUserProvider;
 import model.UserAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 import reports.ExtentReportManager;
+import utils.GridHealthCheckRetry;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -25,22 +27,29 @@ public class BaseTest {
 
     protected final Logger LOG = LogManager.getLogger(getClass());
 
-    // ThreadLocal ensures each parallel thread gets its own WebDriver instance / test user
-    // Required for parallel="tests" or parallel="classes" in user-management.xml
-    protected ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+    protected static ThreadLocal<WebDriver> driver = new ThreadLocal<>();
     private static ThreadLocal<UserAccount> testUser = new ThreadLocal<>();
 
     private static final String REQUIRE_USER_GROUP = "requiresUser";
 
     @BeforeSuite(alwaysRun = true)
     public void beforeSuite() {
-        LOG.info("Initialize Extent Report");
+        RunOn runOn = TestConfig.getRunOn();
+        if (runOn == RunOn.GRID) {
+            // boolean ready = GridHealthCheck.isGridReady(TestConfig.getHubUrl() +
+            // "/status");
+            boolean ready = GridHealthCheckRetry.waitUntilGridReady(TestConfig.getHubUrl() + "/status");
+            if (!ready) {
+                LOG.error("Grid is NOT ready. Aborting execution");
+                System.exit(0);
+            }
+        }
         ExtentReportManager.initializeExtentReports();
     }
 
     @BeforeMethod(alwaysRun = true)
     public void beforeMethod(Method method) {
-        initializeWebDriver(resolveBrowser());
+        initializeWebDriver(TestConfig.getBrowser());
         ExtentReportManager.createTest(method.getName());
         setupTestUserIfNeeded(method);
     }
@@ -67,16 +76,8 @@ public class BaseTest {
     }
 
     // --- Private Helpers ----
-    private String resolveBrowser() {
-        String browser = System.getProperty("browser");
-        if (browser == null || browser.isEmpty()) {
-            browser = ConfigManager.getProperty("browser");
-        }
-        return (browser == null || browser.isEmpty()) ? "chrome" : browser;
-    }
-
-    private void initializeWebDriver(String browserName) {
-        driver.set(DriverManagerFactory.getDriverManager(browserName).createDriver());
+    private void initializeWebDriver(Browser browser) {
+        driver.set(DriverManagerFactory.getDriverManager(browser).createDriver());
         LOG.info("Thread: " + Thread.currentThread().threadId() +
                 " - [setUp] - WebDriver Instance: " + getDriver());
     }
@@ -93,8 +94,7 @@ public class BaseTest {
         Test testAnnotation = method.getAnnotation(Test.class);
         boolean requiresUser = true;
         if (testAnnotation != null) {
-            requiresUser =
-                    Arrays.asList(testAnnotation.groups()).contains(REQUIRE_USER_GROUP);
+            requiresUser = Arrays.asList(testAnnotation.groups()).contains(REQUIRE_USER_GROUP);
         }
 
         if (requiresUser) {
@@ -115,7 +115,8 @@ public class BaseTest {
         if (result.getStatus() == ITestResult.FAILURE) {
             LOG.error("Test FAILED: " + result.getName());
 
-            // Capture screenshot for hard assertion failures (exceptions, NoSuchElementException, etc.)
+            // Capture screenshot for hard assertion failures (exceptions,
+            // NoSuchElementException, etc.)
             // Soft assertion failures already capture screenshots inline
             Throwable throwable = result.getThrowable();
             boolean isSoftAssertFailure = throwable != null &&
