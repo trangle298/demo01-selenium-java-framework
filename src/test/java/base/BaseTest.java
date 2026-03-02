@@ -1,7 +1,7 @@
 package base;
 
-import config.ConfigManager;
 import config.TestConfig;
+import config.enums.Browser;
 import drivers.DriverManagerFactory;
 import config.enums.RunOn;
 import helpers.providers.TestUserProvider;
@@ -27,7 +27,7 @@ public class BaseTest {
 
     protected final Logger LOG = LogManager.getLogger(getClass());
 
-    protected ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+    protected static ThreadLocal<WebDriver> driver = new ThreadLocal<>();
     private static ThreadLocal<UserAccount> testUser = new ThreadLocal<>();
 
     private static final String REQUIRE_USER_GROUP = "requiresUser";
@@ -49,7 +49,7 @@ public class BaseTest {
 
     @BeforeMethod(alwaysRun = true)
     public void beforeMethod(Method method) {
-        initializeWebDriver(resolveBrowser());
+        initializeWebDriver(TestConfig.getBrowser());
         ExtentReportManager.createTest(method.getName());
         setupTestUserIfNeeded(method);
     }
@@ -76,16 +76,8 @@ public class BaseTest {
     }
 
     // --- Private Helpers ----
-    private String resolveBrowser() {
-        String browser = System.getProperty("browser");
-        if (browser == null || browser.isEmpty()) {
-            browser = ConfigManager.getProperty("browser");
-        }
-        return (browser == null || browser.isEmpty()) ? "chrome" : browser;
-    }
-
-    private void initializeWebDriver(String browserName) {
-        driver.set(DriverManagerFactory.getDriverManager(browserName).createDriver());
+    private void initializeWebDriver(Browser browser) {
+        driver.set(DriverManagerFactory.getDriverManager(browser).createDriver());
         LOG.info("Thread: " + Thread.currentThread().threadId() +
                 " - [setUp] - WebDriver Instance: " + getDriver());
     }

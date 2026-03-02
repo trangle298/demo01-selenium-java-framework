@@ -79,9 +79,6 @@ tasks.withType(Test) {
     // Forward credentials to the test JVM (passed via -Dadmin.username etc. from Jenkins)
     systemProperty 'admin.username', System.properties['admin.username']
     systemProperty 'admin.password', System.properties['admin.password']
-    systemProperty 'basic.username', System.properties['basic.username']
-    systemProperty 'basic.password', System.properties['basic.password']
-    systemProperty 'basic.email', System.properties['basic.email']
 
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
