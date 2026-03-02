@@ -3,7 +3,7 @@ pipeline {
 
     triggers {
         // Check GitHub for changes every 2 minutes and trigger build if found
-        pollSCM('H/2 * * * * %SUITE=smoke;GIT_BRANCH=main')
+        // pollSCM('H/2 * * * *')
         
         // Scheduled smoke test every Thursday at 8 AM
         parameterizedCron('H 8 * * 4 %SUITE=smoke;GIT_BRANCH=main')
@@ -12,6 +12,7 @@ pipeline {
      options {
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '15', artifactNumToKeepStr: '15'))
+        ansiColor('xterm')
     }
 
     parameters {
