@@ -178,3 +178,8 @@ javadoc {
     // Suppress warnings for missing tags
     options.addStringOption('Xdoclint:none', '-quiet')
 }
+
+// Clean up the custom test-output directory when running 'gradle clean'
+clean {
+    delete 'test-output'
+}
