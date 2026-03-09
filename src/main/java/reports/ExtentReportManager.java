@@ -5,8 +5,6 @@ import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 
-import common.GlobalVariables;
-
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -26,8 +24,8 @@ public class ExtentReportManager {
 
     private static ExtentReports extent;
     private static ThreadLocal<ExtentTest> test = new ThreadLocal<>(); // mỗi thread 1 ExtentTest
-    private static final String REPORT_PATH = GlobalVariables.RUN_FOLDER + "ExtentReport.html";
-    private static final String SCREENSHOT_PATH = GlobalVariables.RUN_FOLDER + "screenshots/";
+    private static final String REPORT_PATH = "test-output/ExtentReport.html";
+    private static final String SCREENSHOT_PATH = "test-output/screenshots/";
 
     public static void initializeExtentReports() {
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(REPORT_PATH);

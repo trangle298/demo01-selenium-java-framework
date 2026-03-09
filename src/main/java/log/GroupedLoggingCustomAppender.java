@@ -27,7 +27,7 @@ public class GroupedLoggingCustomAppender extends AbstractAppender {
 	private static final String outputDir;
 
 	static {
-		String outdir = GlobalVariables.RUN_FOLDER;
+		String outdir = GlobalVariables.OUTPUT_LOG_FOLDER;
 		System.out.println("outdir = " + outdir);
 		if (!outdir.endsWith("/"))
 			outdir += "/";

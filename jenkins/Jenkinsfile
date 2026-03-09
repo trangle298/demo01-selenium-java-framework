@@ -140,15 +140,6 @@ pipeline {
                     echo " ===> Publishing test results..."
                     archiveArtifacts artifacts: 'test-output/**', followSymlinks: false
                     
-                    // Copy ExtentReport and screenshots to the root test-output folder 
-                    // so publishHTML can find them without dynamic wildcards
-                    bat returnStatus: true, script: '''
-                        FOR /D %%D IN ("test-output\\run-*") DO (
-                            copy /Y "%%D\\ExtentReport.html" "test-output\\"
-                            xcopy /Y /S /I "%%D\\screenshots" "test-output\\screenshots"
-                        )
-                    '''
-                    
                     publishHTML([allowMissing: false,
                                 alwaysLinkToLastBuild: true,
                                 icon: '', keepAll: true,

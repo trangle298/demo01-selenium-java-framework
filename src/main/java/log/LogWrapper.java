@@ -29,7 +29,7 @@ public class LogWrapper {
 
 	public static void mergeLogFiles() {
 		try {
-			File file = new File(GlobalVariables.RUN_FOLDER);
+			File file = new File(GlobalVariables.OUTPUT_LOG_FOLDER);
 			File[] files = file.listFiles(new FileFilter() {
 				@Override
 				public boolean accept(File pathname) {
@@ -47,7 +47,7 @@ public class LogWrapper {
 
 			String logFileName = GlobalVariables.FILE_LOG_NAME + GlobalVariables.RUN_TEST_TIMESTAMP
 					+ GlobalVariables.EXT_LOG;
-			Path pathAll = FileSystems.getDefault().getPath(GlobalVariables.RUN_FOLDER + logFileName);
+			Path pathAll = FileSystems.getDefault().getPath(GlobalVariables.OUTPUT_LOG_FOLDER + "/" + logFileName);
 			for (Path path : paths) {
 				String separator = "\n--- " + path.getFileName() + " " + "-".repeat(60) + "\n";
 				Files.write(pathAll, separator.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
@@ -68,6 +68,6 @@ public class LogWrapper {
 	}
 
 	public static void deleteIndividualThreadLog() {
-		FileUtils.deleteFilesWithPrefix(GlobalVariables.RUN_FOLDER, "thread_output_");
+		FileUtils.deleteFilesWithPrefix(GlobalVariables.OUTPUT_LOG_FOLDER, "thread_output_");
 	}
 }
