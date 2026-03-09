@@ -124,11 +124,6 @@ pipeline {
                         // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\"" 
                         gradleCmd += " \"-Dadmin.username=${ADMIN_USERNAME}\" \"-Dadmin.password=${ADMIN_PASSWORD}\""
 
-                        // Add log level
-                        if (params.LOG_LEVEL == 'DEBUG') {
-                            gradleCmd += " --debug"
-                        }
-                        
                         // Add retry flag if requested
                         if (params.RETRY_FAILED_TESTS == 'Yes') {
                             gradleCmd += " -Dretry.enabled=true"
