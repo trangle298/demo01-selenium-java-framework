@@ -37,6 +37,8 @@ public class GridExecutionListener implements IExecutionListener {
 
     @Override
     public void onExecutionFinish() {
-        LOG.info("=== GLOBAL EXECUTION FINISH ===");
+        if (TestConfig.getRunOn() == RunOn.GRID) {
+            LOG.info("=== GLOBAL EXECUTION FINISH ===");
+        }
     }
 }

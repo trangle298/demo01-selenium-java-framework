@@ -11,7 +11,8 @@ public class AuthActionHelper {
     private static final Logger LOG = LogManager.getLogger(AuthActionHelper.class);
 
     public static void login(LoginPage loginPage, String username, String password) {
-        LOG.info("Login as user: " + username);
+        LOG.info("Login as existing user");
+        LOG.debug("Username: " + username);
         loginPage.navigateToLoginPage();
         loginPage.fillLoginFormThenSubmit(username, password);
         loginPage.topBarNavigation.waitForUserProfileLink();
@@ -22,7 +23,7 @@ public class AuthActionHelper {
     }
 
     public static void logout(CommonPage page) {
-        LOG.info("Log out");
+        LOG.info("Click Logout link and confirm logout");
         page.topBarNavigation.clickLogoutLinkAndConfirm();
         page.topBarNavigation.waitForLoginLink();
     }

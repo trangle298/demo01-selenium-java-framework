@@ -19,7 +19,7 @@ public class TestUserProvider {
         // TEMP: Remove all non-alphabetic chars in full name due to known backend bug
         // to make sure account form is displayed for this test
         registerPayload.setFullName(registerPayload.getFullName().replaceAll("[^a-zA-Z]", ""));
-        LOG.info(
+        LOG.warn(
                 "Temp fix for known issue: Modify Full Name to remove all non-alphabetic chars before register to have account form displayed");
 
         UserService userService = new UserService();
@@ -42,9 +42,10 @@ public class TestUserProvider {
             int status = response.statusCode();
 
             if (status == 200 || status == 404) {
-                LOG.info("User cleanup completed: " + user.getUsername());
+                LOG.info("Test user cleanup completed");
             } else {
                 LOG.warn("Unexpected delete status: " + status);
+                LOG.debug("Username of test user: " + user.getUsername());
             }
         } catch (Exception e) {
             LOG.warn("Cleanup failed for user " + user.getUsername(), e);

@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
+import log.LogWrapper;
 import reports.ExtentReportManager;
 import utils.GridHealthCheckRetry;
 
@@ -64,7 +65,9 @@ public class BaseTest {
     @AfterSuite(alwaysRun = true)
     public void afterSuite() {
         ExtentReportManager.flushReports();
-        LOG.info("Test Suite completed");
+        LogWrapper.mergeLogFiles();
+        LogWrapper.closeAppenderWriters();
+        LogWrapper.deleteIndividualThreadLog();
     }
 
     protected WebDriver getDriver() {
@@ -78,8 +81,7 @@ public class BaseTest {
     // --- Private Helpers ----
     private void initializeWebDriver(Browser browser) {
         driver.set(DriverManagerFactory.getDriverManager(browser).createDriver());
-        LOG.info("Thread: " + Thread.currentThread().threadId() +
-                " - [setUp] - WebDriver Instance: " + getDriver());
+        LOG.info("[Thread: " + Thread.currentThread().threadId() + "] WebDriver started: " + getDriver().toString());
     }
 
     private void cleanupWebDriver() {
@@ -113,8 +115,6 @@ public class BaseTest {
     private void logTestResult(ITestResult result) {
         // Log test result to ExtentReport based on test status
         if (result.getStatus() == ITestResult.FAILURE) {
-            LOG.error("Test FAILED: " + result.getName());
-
             // Capture screenshot for hard assertion failures (exceptions,
             // NoSuchElementException, etc.)
             // Soft assertion failures already capture screenshots inline
@@ -132,11 +132,9 @@ public class BaseTest {
             ExtentReportManager.fail("Test FAILED: " + errorMsg);
 
         } else if (result.getStatus() == ITestResult.SUCCESS) {
-            LOG.info("Test PASSED: " + result.getName());
             ExtentReportManager.pass("Test PASSED successfully");
 
         } else if (result.getStatus() == ITestResult.SKIP) {
-            LOG.warn("Test SKIPPED: " + result.getName());
             ExtentReportManager.skip("Test SKIPPED: " + result.getThrowable());
         }
     }

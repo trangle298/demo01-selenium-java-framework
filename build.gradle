@@ -20,10 +20,16 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.addAll(['--release', '21'])
 }
 
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 ext {
-    seleniumVersion = "4.35.0"
+    seleniumVersion = "4.41.0"
     testNGVersion = "7.11.0"
-    log4jVersion = "2.25.1"
+    log4jVersion = "2.25.3"
     extentReportVersion = "5.1.2"
     fakerVersion = "2.3.1"
     restAssuredVersion = "5.5.6"
@@ -42,6 +48,8 @@ dependencies {
     implementation("org.testng:testng:${testNGVersion}")
     implementation("org.apache.logging.log4j:log4j-core:${log4jVersion}")
     implementation("org.apache.logging.log4j:log4j-api:${log4jVersion}")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:${log4jVersion}")
+
     implementation("com.aventstack:extentreports:${extentReportVersion}")
 
     implementation("net.datafaker:datafaker:${fakerVersion}")
@@ -69,20 +77,23 @@ dependencies {
 }
 
 tasks.withType(Test) {
-    systemProperty 'env', System.properties['env']
-    systemProperty 'testSuite', System.properties['testSuite']
-    systemProperty 'runOn', System.properties['runOn']
-    systemProperty 'platform', System.properties['platform']
-    systemProperty 'browser', System.properties['browser']
-    systemProperty 'headless', System.properties['headless']
+    ['env', 'testSuite', 'runOn', 'platform', 'browser', 'headless',
+     'admin.username', 'admin.password'].each { key ->
+       systemProperty key, System.getProperty(key)
+    }
 
-    // Forward credentials to the test JVM (passed via -Dadmin.username etc. from Jenkins)
-    systemProperty 'admin.username', System.properties['admin.username']
-    systemProperty 'admin.password', System.properties['admin.password']
+    // logLevel needs an explicit null guard — passing null to systemProperty can set it as
+    // the string "null" or "", causing Log4j2 to ignore its XML-configured default level
+    def logLevel = System.getProperty('logLevel')
+    if (logLevel != null) {
+        systemProperty 'logLevel', logLevel
+    }
+
+    outputs.upToDateWhen { false }
 
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
-        outputDirectory = file("$projectDir/test-output") // folder chứa test report
+        outputDirectory = file("$projectDir/test-output") // folder containing test report
 
         def groups = System.getProperty('groups')
         // If the 'groups' property is provided, include only those groups

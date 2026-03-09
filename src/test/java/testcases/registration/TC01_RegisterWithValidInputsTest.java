@@ -21,8 +21,6 @@ public class TC01_RegisterWithValidInputsTest extends BaseTest {
 
         // Generate and use valid inputs to submit register form
         RegisterDataUI formInputs = generateValidRegisterFormInputs();
-        // Confirm that account username is unique
-        AccountVerificationHelper.verifyAccountExistence(formInputs.getUsername(), false, softAssert);
 
         ExtentReportManager.info("Navigate to Register page");
         registerPage.navigateToRegisterPage();

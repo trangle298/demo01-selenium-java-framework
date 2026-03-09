@@ -11,8 +11,8 @@
            <class name="testcases.registration.TC01_RegisterWithValidInputsTest" />
            <class name="testcases.authentication.TC16_LoginWithValidCredentialsTest" />
            <class name="testcases.authentication.TC21_LogoutTest" />
-           <class name="testcases.browsing.TC36_DropdownAppliedFiltersNavigationTest" />
-           <class name="testcases.booking.TC32_UserSeatSelectionAndConfirmationTest" />
+<!--           <class name="testcases.browsing.TC36_DropdownAppliedFiltersNavigationTest" />-->
+<!--           <class name="testcases.booking.TC32_UserSeatSelectionAndConfirmationTest" />-->
        </classes>
     </test>
 

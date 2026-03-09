@@ -70,17 +70,18 @@ public class RegisterPage extends CommonPage {
     }
 
     public void clickRegister() {
-        LOG.info("Click Submit button");
         click(btnRegister);
     }
 
     public void fillRegisterFormThenSubmit(String username, String password, String confirmPassword, String fullName, String email) {
-        LOG.info("Fill Register form and submit");
+        LOG.info("Fill Register form");
         enterFieldInput(RegisterField.USERNAME, username);
         enterFieldInput(RegisterField.PASSWORD, password);
         enterFieldInput(RegisterField.CONFIRM_PASSWORD, confirmPassword);
         enterFieldInput(RegisterField.FULL_NAME, fullName);
         enterFieldInput(RegisterField.EMAIL, email);
+
+        LOG.info("Click Submit button");
         clickRegister();
     }
 

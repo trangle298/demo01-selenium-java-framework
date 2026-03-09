@@ -34,7 +34,7 @@ public class AuthService {
                         }
 
                         cachedAdminToken = response.jsonPath().getString("accessToken");
-                        LOG.info("Admin token acquired successfully (length: " + cachedAdminToken.length() + ")");
+                        LOG.debug("Admin token length: " + cachedAdminToken.length());
                 }
                 return cachedAdminToken;
         }

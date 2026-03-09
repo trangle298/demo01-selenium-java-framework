@@ -109,7 +109,7 @@ pipeline {
                         string(credentialsId: "${params.ENVIRONMENT.toUpperCase()}_ADMIN_PASSWORD", variable: 'ADMIN_PASSWORD'),
                     ]) {
                          // Build gradle command
-                        def gradleCmd = ".\\gradlew"
+                        def gradleCmd = ".\\gradlew clean"
                         
                         if (params.SUITE != 'none') {
                              gradleCmd += " testSuite -Dsuite=${params.SUITE}"
@@ -118,7 +118,7 @@ pipeline {
                         }
                         
                         // Add required params
-                        gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD} -Dheadless=true"
+                        gradleCmd += " -Denv=${params.ENVIRONMENT} -Dbrowser=${params.BROWSER_NAME} -DrunOn=${params.RUN_ON} -Dparallel=classes -Dthreadcount=${params.PARALLEL_THREAD} -DlogLevel=${params.LOG_LEVEL} -Dheadless=true"
                         
                         // Add credentials via environment variables (secure)
                         // gradleCmd += " \"-Dadmin.username=%ADMIN_USERNAME%\" \"-Dadmin.password=%ADMIN_PASSWORD%\"" 
@@ -144,6 +144,16 @@ pipeline {
                 always {
                     echo " ===> Publishing test results..."
                     archiveArtifacts artifacts: 'test-output/**', followSymlinks: false
+                    
+                    // Copy ExtentReport and screenshots to the root test-output folder 
+                    // so publishHTML can find them without dynamic wildcards
+                    bat returnStatus: true, script: '''
+                        FOR /D %%D IN ("test-output\\run-*") DO (
+                            copy /Y "%%D\\ExtentReport.html" "test-output\\"
+                            xcopy /Y /S /I "%%D\\screenshots" "test-output\\screenshots"
+                        )
+                    '''
+                    
                     publishHTML([allowMissing: false,
                                 alwaysLinkToLastBuild: true,
                                 icon: '', keepAll: true,
