@@ -116,11 +116,7 @@ Before running the tests, ensure you have the following installed:
    ```bash
    gradlew build
    ```
-   Or without wrapper:
-   ```bash
-   gradle build
-   ```
-
+   
 3. **Verify installation:**
    ```bash
    gradlew clean test --tests testcases.registration.TC01_RegisterWithValidInputsTest

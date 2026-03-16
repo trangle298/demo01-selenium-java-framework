@@ -17,34 +17,37 @@ public class TestListener implements ITestListener {
     @Override
     public void onTestStart(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        LOG.info("===== START TEST: " + methodName + " =====");
+        LOG.info("===== START TEST: {} =====", methodName);
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        LOG.info("===== PASSED TEST: " + methodName + " =====");
+        double elapsed = (result.getEndMillis() - result.getStartMillis()) / 1000.0;
+        LOG.info(String.format("===== PASSED TEST: %s (%.1fs) =====", methodName, elapsed));
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        LOG.error("===== FAILED TEST: " + methodName + " =====", result.getThrowable());
+        double elapsed = (result.getEndMillis() - result.getStartMillis()) / 1000.0;
+        LOG.error(String.format("===== FAILED TEST: %s (%.1fs) =====", methodName, elapsed), result.getThrowable());
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        LOG.warn("===== SKIPPED TEST: " + methodName + " =====");
+        double elapsed = (result.getEndMillis() - result.getStartMillis()) / 1000.0;
+        LOG.warn(String.format("===== SKIPPED TEST: %s (%.1fs) =====", methodName, elapsed));
     }
 
     @Override
     public void onStart(ITestContext context) {
-        LOG.info(">>> START TEST SUITE: " + context.getName());
+        LOG.info(">>> START TEST SUITE: {}", context.getName());
     }
 
     @Override
     public void onFinish(ITestContext context) {
-        LOG.info(">>> FINISH TEST SUITE: " + context.getName());
+        LOG.info(">>> FINISH TEST SUITE: {}", context.getName());
     }
 }

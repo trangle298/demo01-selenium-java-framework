@@ -6,7 +6,8 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
- * Utility class to normalize datetime strings from different sources (UI and API)
+ * Utility class to normalize datetime strings from different sources (UI and
+ * API)
  * into a standard format for comparison.
  */
 public class DateTimeNormalizer {
@@ -15,15 +16,16 @@ public class DateTimeNormalizer {
     public static final DateTimeFormatter STANDARD_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     // Common datetime formats from API and UI
-    // Note: UI should ideally use a consistent format, but we handle known variations here.
+    // Note: UI should ideally use a consistent format, but we handle known
+    // variations here.
     private static final List<DateTimeFormatter> KNOWN_FORMATS = List.of(
-            DateTimeFormatter.ofPattern("dd/MM/yyyy ~ HH:mm"),  // UI format: 24/12/2021 ~ 13:35
-            DateTimeFormatter.ofPattern("dd/MM/yyyy -HH:mm"),   // Alternate UI format: 17/10/2021 -08:10
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"),    // Alternate UI format: 17/10/2021 08:10
-            DateTimeFormatter.ofPattern("dd-MM-yyyy ~ HH:mm"),  // Alternate UI format:  01-01-2019  ~  14:10
-            DateTimeFormatter.ofPattern("dd-MM-yyyy | HH:mm"),  // Alternate UI format: 11-01-2026 | 16:48
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME,              // API format: 2021-10-17T08:43:00
-            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")     // Joint from API date and time fields
+            DateTimeFormatter.ofPattern("dd/MM/yyyy ~ HH:mm"), // UI format: 24/12/2021 ~ 13:35
+            DateTimeFormatter.ofPattern("dd/MM/yyyy -HH:mm"), // Alternate UI format: 17/10/2021 -08:10
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"), // Alternate UI format: 17/10/2021 08:10
+            DateTimeFormatter.ofPattern("dd-MM-yyyy ~ HH:mm"), // Alternate UI format: 01-01-2019 ~ 14:10
+            DateTimeFormatter.ofPattern("dd-MM-yyyy | HH:mm"), // Alternate UI format: 11-01-2026 | 16:48
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME, // API format: 2021-10-17T08:43:00
+            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm") // Joint from API date and time fields
     );
 
     /**
@@ -60,5 +62,4 @@ public class DateTimeNormalizer {
         }
         return datetime.format(STANDARD_FORMAT);
     }
-
 }

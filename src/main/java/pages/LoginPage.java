@@ -74,9 +74,10 @@ public class LoginPage extends CommonPage {
     }
 
     public void fillLoginFormThenSubmit(String account, String password) {
-        LOG.info("Fill login form and submit");
+        LOG.info("Enter account and password");
         enterAccount(account);
         enterPassword(password);
+        LOG.info("Click Login button");
         clickLoginButton();
     }
 

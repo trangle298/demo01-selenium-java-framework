@@ -4,7 +4,11 @@ import base.BaseTest;
 import helpers.providers.MessagesProvider;
 import helpers.providers.TestUserProvider;
 import helpers.verifications.RegisterVerificationHelper;
+import model.UserAccount;
 import model.ui.RegisterDataUI;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
@@ -15,19 +19,30 @@ import static helpers.providers.UserAccountTestDataGenerator.generateValidRegist
 
 public class TC04_RegisterWithExistingUsernameTest extends BaseTest {
 
+    private UserAccount existingUser;
+
+    @BeforeClass
+    public void createExistingUser() {
+        existingUser = TestUserProvider.createNewTestUser();
+    }
+
+    @AfterClass
+    public void cleanup() {
+        TestUserProvider.deleteUser(existingUser);
+    }
+
     @DataProvider(name = "existingUsernameScenarios")
     public Object[][] existingUsernameScenarios() {
 
-        String existingUsername = TestUserProvider.getDefaultTestUser().getUsername();
+        String existingUsername = existingUser.getUsername();
 
-        return new Object[][]{
-                {existingUsername, "Existing Username"},
-                {existingUsername.toUpperCase(), "Existing Username in different casing"},
+        return new Object[][] {
+                { existingUsername, "Existing Username" },
+                { existingUsername.toUpperCase(), "Existing Username in different casing" },
         };
     }
 
-    @Test(description = "Test Blocked Registration With Existing Username Regardless Of Casing",
-            dataProvider = "existingUsernameScenarios")
+    @Test(description = "Test Blocked Registration With Existing Username Regardless Of Casing", dataProvider = "existingUsernameScenarios")
     public void testRegisterBlockedWithExistingUsername(String username, String scenario) {
 
         ExtentReportManager.info("Test Register with " + scenario);

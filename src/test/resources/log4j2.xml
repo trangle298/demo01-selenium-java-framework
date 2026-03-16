@@ -1,28 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="INFO">
+<Configuration status="WARN">
     <Appenders>
-        <!-- Log ra console -->
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] [%t] %c{1} - %msg%n"/>
-        </Console>
+        <Routing name="TestRouting">
+            <Routes pattern="${ctx:testName}">
+                <!-- Default route: matches any named test (between @BeforeMethod and @AfterMethod) -->
+                <Route>
+                    <File name="File-${ctx:testName}"
+                          fileName="test-output/${sys:startTimestamp}/${ctx:testName}-${ctx:threadId}.log">
+                        <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] %c{1}:%L - %msg%n"/>
+                    </File>
+                </Route>
+                <!-- Suite route: testName="suite" (@BeforeSuite / @AfterSuite) -->
+                <Route key="suite">
+                    <File name="SuiteFile"
+                          fileName="test-output/${sys:startTimestamp}/suite.log">
+                        <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] %c{1}:%L - %msg%n"/>
+                    </File>
+                </Route>
+                <!-- Fallback: testName not yet set — routing key evaluates to literal "${ctx:testName}" -->
+                <Route key="$${ctx:testName}">
+                    <File name="PreSuiteFile"
+                          fileName="test-output/${sys:startTimestamp}/suite.log">
+                        <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] %c{1}:%L - %msg%n"/>
+                    </File>
+                </Route>
+            </Routes>
+        </Routing>
 
-        <!-- Log ra file rolling hằng ngày -->
-        <RollingFile name="FileLogger" fileName="test-output/automation.log"
-                     filePattern="logs/test-%d{yyyy-MM-dd}.log">
-            <PatternLayout>
-                <Pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%-5level] [%t] %c{1} - %msg%n</Pattern>
-            </PatternLayout>
-            <Policies>
-                <TimeBasedTriggeringPolicy />
-            </Policies>
-        </RollingFile>
+        <Console name="Console">
+            <!-- WARN+ always shown: suite lifecycle markers + test failures/errors -->
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] [%X{testName}] %c{1} - %msg%n"/>
+        </Console>
     </Appenders>
 
     <Loggers>
-        <!-- Root logger cho test cases -->
-        <Root level="info">
+        <Root level="${sys:logLevel:-INFO}">
+            <AppenderRef ref="TestRouting"/>
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="FileLogger"/>
         </Root>
     </Loggers>
+
 </Configuration>

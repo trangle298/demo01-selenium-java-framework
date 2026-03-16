@@ -66,7 +66,7 @@ public class ChainedDropdownsHome extends BasePage {
         selectDropdownOptionByVisibleText(getSelectFilter(MovieDropdownField.MOVIE), movieTitle);
     }
 
-    public void selectCinemaBranchByName(String cinemaLocation) {
+    public void selectCinemaBranchByName(String cinemaLocation) { 
         selectDropdownOptionByVisibleText(getSelectFilter(MovieDropdownField.CINEMA), cinemaLocation);
     }
 
@@ -76,7 +76,7 @@ public class ChainedDropdownsHome extends BasePage {
 
     public void selectAllFiltersAndConfirm(String movieTitle, String cinemaLocation, String showtimeId) {
         LOG.info("Apply filters: movie = " + movieTitle + ", " +
-                "cinema = " +cinemaLocation + ", showtime = " + showtimeId + "and click find tickets");
+                "cinema = " +cinemaLocation + ", showtime = " + showtimeId + " and click find tickets");
         selectMovieByMovieTitle(movieTitle);
         selectCinemaBranchByName(cinemaLocation);
         selectShowtimeById(showtimeId);

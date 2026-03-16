@@ -4,6 +4,7 @@ import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -23,13 +24,14 @@ public class ExtentReportManager {
 
     private static ExtentReports extent;
     private static ThreadLocal<ExtentTest> test = new ThreadLocal<>(); // mỗi thread 1 ExtentTest
-    private static final String REPORT_PATH = "test-output/ExtentReport.html";
-    private static final String SCREENSHOT_PATH = "test-output/screenshots/";
 
     public static void initializeExtentReports() {
-        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(REPORT_PATH);
+        String reportPath = System.getProperty("runOutputDir") + "/ExtentReport.html";
+        ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
 
-        // generate self-contained HTML reports. By setting this to true, the report loads necessary assets (CSS, JS) locally, ensuring it works without an internet connection.
+        // generate self-contained HTML reports. By setting this to true, the report
+        // loads necessary assets (CSS, JS) locally, ensuring it works without an
+        // internet connection.
         sparkReporter.config().setOfflineMode(true);
 
         extent = new ExtentReports();
@@ -72,16 +74,17 @@ public class ExtentReportManager {
      * Capture screenshot and attach to ExtentReport.
      * Can be called during soft assertions or on final test failure.
      *
-     * @param driver WebDriver instance
+     * @param driver   WebDriver instance
      * @param testName Name of the test (used for screenshot filename)
      */
     public static void captureScreenshot(WebDriver driver, String testName) {
+        String screenshotPath = System.getProperty("runOutputDir") + "/screenshots/";
         TakesScreenshot screenshot = (TakesScreenshot) driver;
         File sourceFile = screenshot.getScreenshotAs(OutputType.FILE);
 
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String fileName = testName + "_" + timestamp + ".png";
-        File destFile = new File(SCREENSHOT_PATH + fileName);
+        File destFile = new File(screenshotPath + fileName);
 
         try {
             FileUtils.copyFile(sourceFile, destFile);
@@ -93,7 +96,7 @@ public class ExtentReportManager {
     }
 
     public static void flushReports() {
-        if(extent != null) {
+        if (extent != null) {
             extent.flush();
         }
     }

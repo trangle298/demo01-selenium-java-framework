@@ -1,6 +1,6 @@
 package drivers;
 
-import config.ConfigManager;
+import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.safari.SafariDriver;
@@ -13,12 +13,17 @@ import org.openqa.selenium.safari.SafariOptions;
 public class SafariDriverManager extends DriverManager {
 
     @Override
-    public WebDriver createDriver() {
-        boolean eager = Boolean.parseBoolean(ConfigManager.getProperty("eagerPageLoadStrategy"));
+    protected MutableCapabilities getBrowserOptions() {
+        boolean eager = isEagerPageLoad();
 
         SafariOptions options = new SafariOptions();
         options.setPageLoadStrategy(eager ? PageLoadStrategy.EAGER : PageLoadStrategy.NORMAL);
 
-        return new SafariDriver(options);
+        return options;
+    }
+
+    @Override
+    protected WebDriver createLocalDriver(MutableCapabilities options) {
+        return new SafariDriver((SafariOptions) options);
     }
 }
