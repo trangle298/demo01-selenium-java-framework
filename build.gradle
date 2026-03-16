@@ -26,6 +26,7 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+
 ext {
     seleniumVersion = "4.41.0"
     testNGVersion = "7.11.0"
@@ -82,14 +83,10 @@ tasks.withType(Test) {
        systemProperty key, System.getProperty(key)
     }
 
-    // logLevel needs an explicit null guard — passing null to systemProperty can set it as
-    // the string "null" or "", causing Log4j2 to ignore its XML-configured default level
-    def logLevel = System.getProperty('logLevel')
-    if (logLevel != null) {
-        systemProperty 'logLevel', logLevel
-    }
+    systemProperty 'logLevel', System.getProperty('logLevel', 'INFO')
+    systemProperty 'startTimestamp', new Date().format('yyyyMMdd_HH_mm_ss')
 
-    outputs.upToDateWhen { false }
+    // outputs.upToDateWhen { false }
 
     useTestNG() {
         useDefaultListeners = false // Disable TestNG HTML reports (using ExtentReports instead)
@@ -177,9 +174,4 @@ javadoc {
 
     // Suppress warnings for missing tags
     options.addStringOption('Xdoclint:none', '-quiet')
-}
-
-// Clean up the custom test-output directory when running 'gradle clean'
-clean {
-    delete 'test-output'
 }

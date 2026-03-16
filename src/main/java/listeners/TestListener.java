@@ -17,7 +17,7 @@ public class TestListener implements ITestListener {
     @Override
     public void onTestStart(ITestResult result) {
         String methodName = result.getMethod().getMethodName();
-        LOG.info("===== START TEST: " + methodName + " =====");
+        LOG.info("===== START TEST: {} =====", methodName);
     }
 
     @Override
@@ -43,11 +43,11 @@ public class TestListener implements ITestListener {
 
     @Override
     public void onStart(ITestContext context) {
-        LOG.info(">>> START TEST SUITE: " + context.getName());
+        LOG.info(">>> START TEST SUITE: {}", context.getName());
     }
 
     @Override
     public void onFinish(ITestContext context) {
-        LOG.info(">>> FINISH TEST SUITE: " + context.getName());
+        LOG.info(">>> FINISH TEST SUITE: {}", context.getName());
     }
 }

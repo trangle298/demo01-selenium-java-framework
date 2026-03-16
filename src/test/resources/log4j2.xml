@@ -1,20 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="warn" packages="log">
-    <property name="logLevel"/>
+<Configuration status="WARN">
     <Appenders>
-        <MyCustomAppender name="MyCustomAppender"/>
-        
-        <Console name="CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1}: %L - %msg%n%throwable}"/>
-        </Console>
+        <Routing name="TestRouting">
+            <Routes pattern="${ctx:testName}">
+                <!-- Default route: matches any named test (between @BeforeMethod and @AfterMethod) -->
+                <Route>
+                    <File name="File-${ctx:testName}"
+                          fileName="test-output/${sys:startTimestamp}/${ctx:testName}-${ctx:threadId}.log">
+                        <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] %c{1}:%L - %msg%n"/>
+                    </File>
+                </Route>
+                <!-- Suite route: testName="suite" (@BeforeSuite / @AfterSuite) -->
+                <Route key="suite">
+                    <File name="SuiteFile"
+                          fileName="test-output/${sys:startTimestamp}/suite.log">
+                        <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] %c{1}:%L - %msg%n"/>
+                    </File>
+                </Route>
+                <!-- Fallback: testName not yet set — routing key evaluates to literal "${ctx:testName}" -->
+                <Route key="$${ctx:testName}">
+                    <File name="PreSuiteFile"
+                          fileName="test-output/${sys:startTimestamp}/suite.log">
+                        <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] %c{1}:%L - %msg%n"/>
+                    </File>
+                </Route>
+            </Routes>
+        </Routing>
 
+        <Console name="Console">
+            <!-- WARN+ always shown: suite lifecycle markers + test failures/errors -->
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%-5level] [%X{testName}] %c{1} - %msg%n"/>
+        </Console>
     </Appenders>
 
     <Loggers>
-        <!-- Use system property, default to INFO -->
-        <Root level="${sys:logLevel:-INFO}" additivity="false">
-            <AppenderRef ref="MyCustomAppender"/>
-            <AppenderRef ref="CONSOLE"/>
+        <Root level="${sys:logLevel:-INFO}">
+            <AppenderRef ref="TestRouting"/>
+            <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
+
 </Configuration>

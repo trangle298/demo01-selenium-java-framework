@@ -8,10 +8,12 @@ import helpers.providers.TestUserProvider;
 import model.UserAccount;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
-import log.LogWrapper;
+
+import common.GlobalVariables;
 import reports.ExtentReportManager;
 import utils.GridHealthCheckRetry;
 
@@ -35,21 +37,27 @@ public class BaseTest {
 
     @BeforeSuite(alwaysRun = true)
     public void beforeSuite() {
+        ThreadContext.put("testName", "suite");
+        LOG.info("===== SUITE STARTED =====");
         RunOn runOn = TestConfig.getRunOn();
         if (runOn == RunOn.GRID) {
-            // boolean ready = GridHealthCheck.isGridReady(TestConfig.getHubUrl() +
-            // "/status");
+            // boolean ready = GridHealthCheck.isGridReady(TestConfig.getHubUrl() + "/status");
             boolean ready = GridHealthCheckRetry.waitUntilGridReady(TestConfig.getHubUrl() + "/status");
             if (!ready) {
                 LOG.error("Grid is NOT ready. Aborting execution");
                 System.exit(0);
             }
         }
+        System.setProperty("runOutputDir", GlobalVariables.RUN_OUTPUT_DIR);
         ExtentReportManager.initializeExtentReports();
+        LOG.info("Run output dir: " + GlobalVariables.RUN_OUTPUT_DIR);
     }
 
     @BeforeMethod(alwaysRun = true)
     public void beforeMethod(Method method) {
+        ThreadContext.put("testName", method.getName());
+        ThreadContext.put("threadId", String.valueOf(Thread.currentThread().threadId()));
+        ThreadContext.put("logTarget", "file");
         initializeWebDriver(TestConfig.getBrowser());
         ExtentReportManager.createTest(method.getName());
         setupTestUserIfNeeded(method);
@@ -60,14 +68,15 @@ public class BaseTest {
         logTestResult(result);
         cleanupTestUser();
         cleanupWebDriver();
+        ThreadContext.clearAll();
     }
 
     @AfterSuite(alwaysRun = true)
     public void afterSuite() {
+        ThreadContext.put("testName", "suite");
         ExtentReportManager.flushReports();
-        LogWrapper.mergeLogFiles();
-        LogWrapper.closeAppenderWriters();
-        LogWrapper.deleteIndividualThreadLog();
+        LOG.info("===== SUITE FINISHED =====");
+        ThreadContext.clearAll();
     }
 
     protected WebDriver getDriver() {
